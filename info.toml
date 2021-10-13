@@ -1,0 +1,10 @@
+[meta]
+name = "PresetsAndSharing"
+author = "skybaxrider"
+category = "Utilities"
+
+siteid = -1
+version = "1.0.0"
+
+[script]
+imports = []
