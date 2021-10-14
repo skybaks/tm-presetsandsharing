@@ -154,21 +154,21 @@ namespace Serialization
 
             if (value < 0)
             {
-                if (value >= int8(0x80))
+                if (value >= INT8_MIN)
                 {
                     byte1 |= (0x00 << 2);   // 1 byte
                     byte1 |= (0x01 << 1);   // signed
                     m_buffer.Write(byte1);
                     m_buffer.Write(int8(value));
                 }
-                else if (value >= int16(0x8000))
+                else if (value >= INT16_MIN)
                 {
                     byte1 |= (0x01 << 2);   // 2 byte
                     byte1 |= (0x01 << 1);   // signed
                     m_buffer.Write(byte1);
                     m_buffer.Write(int16(value));
                 }
-                else if (value >= int(0x80000000))
+                else if (value >= INT32_MIN)
                 {
                     byte1 |= (0x02 << 2);   // 4 byte
                     byte1 |= (0x01 << 1);   // signed
@@ -183,21 +183,21 @@ namespace Serialization
             }
             else
             {
-                if (uint64(value) <= uint8(0xff))
+                if (uint64(value) <= UINT8_MAX)
                 {
                     byte1 |= (0x00 << 2);   // 1 byte
                     byte1 |= (0x00 << 1);   // unsigned
                     m_buffer.Write(byte1);
                     m_buffer.Write(uint8(value));
                 }
-                else if (uint64(value) <= uint16(0xffff))
+                else if (uint64(value) <= UINT16_MAX)
                 {
                     byte1 |= (0x01 << 2);   // 2 byte
                     byte1 |= (0x00 << 1);   // unsigned
                     m_buffer.Write(byte1);
                     m_buffer.Write(uint16(value));
                 }
-                else if (uint64(value) <= uint(0xffffffff))
+                else if (uint64(value) <= UINT32_MAX)
                 {
                     byte1 |= (0x02 << 2);   // 4 byte
                     byte1 |= (0x00 << 1);   // unsigned
