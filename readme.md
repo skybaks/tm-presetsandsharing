@@ -24,6 +24,15 @@ A plugin for Openplanet in Trackmania.
 
 ### Integer/Enum Setting
 
+| Byte | Bits | Data               | Description                        |
+|------|------|--------------------|------------------------------------|
+|  0-1 | 0-15 | VarName hash       | Hash of settings variable name     |
+|    2 |  0-3 | Setting type       | Type enumeration                   |
+|    2 |  4-5 | Data bytes count   | enumeration of number of data bytes|
+|    2 |    6 | Signed Flag        | Flag indicating the data is signed |
+|    2 |    7 | Spare              | Spare                              |
+|    n |  n*8 | Data               | Integer data                       |
+
 ### Float Setting
 
 ### String Setting
