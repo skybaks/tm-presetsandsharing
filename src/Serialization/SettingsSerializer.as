@@ -9,15 +9,53 @@ namespace Serialization
         {
         }
 
-        string GetBase64String()
+        // Dictionary Format: string, Serialization::SettingsDataItem@
+        bool ReadFromBinary(const string&in inputBase64String, dictionary@ settingsResult)
         {
-            string result = "";
-            uint64 size = m_buffer.GetSize();
-            if (size > 0)
+            m_buffer.Resize(0);
+            m_buffer.WriteFromBase64(inputBase64String);
+            return false;
+        }
+
+        // Dictionary Format: string, Meta::PluginSetting@
+        bool WriteToBinary(dictionary@ inputSettings, const string&in pluginId, string&out resultBase64String)
+        {
+            bool success = false;
+            m_buffer.Resize(0);
+
+            const uint8 SERIALIZER_VERSION = 0;
+
+            // Header
+            m_buffer.Write(uint8(((SERIALIZER_VERSION & 0x0F) << 4) | (0 & 0x0F)));
+            m_buffer.Write(uint8(inputSettings.GetSize()));
+            m_buffer.Write(uint8(Hash8(pluginId)));
+
+            auto keys = inputSettings.GetKeys();
+            for (uint i = 0; i < keys.Length; i++)
             {
-                result = m_buffer.ReadToBase64(size);
+                m_buffer.Write(uint16(Text::ParseUInt(keys[i])));
+                Meta::PluginSetting@ pluginSetting = cast<Meta::PluginSetting>(inputSettings[keys[i]]);
+                uint8 settingType = 0x0F & uint8(pluginSetting.Type);
+                if (pluginSetting.Type == Meta::PluginSettingType::Bool)
+                {
+                    m_buffer.Write(uint8((settingType << 4) | (pluginSetting.ReadBool() ? 0x01 : 0x00)));
+                }
+                else if (pluginSetting.Type == Meta::PluginSettingType::Enum
+                    || pluginSetting.Type == Meta::PluginSettingType::Int8
+                    || pluginSetting.Type == Meta::PluginSettingType::Int16
+                    || pluginSetting.Type == Meta::PluginSettingType::Int32)
+                {
+                }
             }
-            return result;
+
+            resultBase64String = "";
+            if (m_buffer.GetSize() > 0)
+            {
+                m_buffer.Seek(0);
+                resultBase64String = m_buffer.ReadToBase64(m_buffer.GetSize());
+                success = true;
+            }
+            return success;
         }
 
         private void WriteOverallHeader(const uint8&in settingsCount, const uint8&in pluginNameHash)
