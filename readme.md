@@ -55,9 +55,53 @@ A plugin for Openplanet in Trackmania.
 
 ### Vec2 Setting
 
+| Byte | Bits | Data               | Description                           |
+|------|------|--------------------|---------------------------------------|
+|  0-1 | 0-15 | VarName hash       | Hash of settings variable name        |
+|    2 |  0-3 | Setting type       | Type enumeration                      |
+|    2 |  4-5 | Byte Number Enum X | 0=0byte; 1=1bytes; 2=2bytes; 3=4bytes |
+|    2 |  6-7 | Resolution Enum X  | 0=0.001; 1=0.01; 2=0.1; 3=1.0         |
+|    3 |  0-1 | Byte Number Enum Y | 0=0byte; 1=1bytes; 2=2bytes; 3=4bytes |
+|    3 |  2-3 | Resolution Enum Y  | 0=0.001; 1=0.01; 2=0.1; 3=1.0         |
+|    3 |  4-7 | Spare              | Spare                                 |
+|    n |  n*8 | Data X             | Scaled float data X                   |
+|    n |  n*8 | Data Y             | Scaled float data Y                   |
+
 ### Vec3 Setting
 
+| Byte | Bits | Data               | Description                           |
+|------|------|--------------------|---------------------------------------|
+|  0-1 | 0-15 | VarName hash       | Hash of settings variable name        |
+|    2 |  0-3 | Setting type       | Type enumeration                      |
+|    2 |  4-5 | Byte Number Enum X | 0=0byte; 1=1bytes; 2=2bytes; 3=4bytes |
+|    2 |  6-7 | Resolution Enum X  | 0=0.001; 1=0.01; 2=0.1; 3=1.0         |
+|    3 |  0-1 | Byte Number Enum Y | 0=0byte; 1=1bytes; 2=2bytes; 3=4bytes |
+|    3 |  2-3 | Resolution Enum Y  | 0=0.001; 1=0.01; 2=0.1; 3=1.0         |
+|    3 |  4-5 | Byte Number Enum Z | 0=0byte; 1=1bytes; 2=2bytes; 3=4bytes |
+|    3 |  6-7 | Resolution Enum Z  | 0=0.001; 1=0.01; 2=0.1; 3=1.0         |
+|    n |  n*8 | Data X             | Scaled float data X                   |
+|    n |  n*8 | Data Y             | Scaled float data Y                   |
+|    n |  n*8 | Data Z             | Scaled float data Y                   |
+
 ### Vec4 Setting
+
+| Byte | Bits | Data               | Description                           |
+|------|------|--------------------|---------------------------------------|
+|  0-1 | 0-15 | VarName hash       | Hash of settings variable name        |
+|    2 |  0-3 | Setting type       | Type enumeration                      |
+|    2 |  4-5 | Byte Number Enum X | 0=0byte; 1=1bytes; 2=2bytes; 3=4bytes |
+|    2 |  6-7 | Resolution Enum X  | 0=0.001; 1=0.01; 2=0.1; 3=1.0         |
+|    3 |  0-1 | Byte Number Enum Y | 0=0byte; 1=1bytes; 2=2bytes; 3=4bytes |
+|    3 |  2-3 | Resolution Enum Y  | 0=0.001; 1=0.01; 2=0.1; 3=1.0         |
+|    3 |  4-5 | Byte Number Enum Z | 0=0byte; 1=1bytes; 2=2bytes; 3=4bytes |
+|    3 |  6-7 | Resolution Enum Z  | 0=0.001; 1=0.01; 2=0.1; 3=1.0         |
+|    4 |  0-1 | Byte Number Enum W | 0=0byte; 1=1bytes; 2=2bytes; 3=4bytes |
+|    4 |  2-3 | Resolution Enum W  | 0=0.001; 1=0.01; 2=0.1; 3=1.0         |
+|    4 |  4-7 | Spare              | Spare                                 |
+|    n |  n*8 | Data X             | Scaled float data X                   |
+|    n |  n*8 | Data Y             | Scaled float data Y                   |
+|    n |  n*8 | Data Z             | Scaled float data Y                   |
+|    n |  n*8 | Data W             | Scaled float data Y                   |
 
 ## Data Coherency
 

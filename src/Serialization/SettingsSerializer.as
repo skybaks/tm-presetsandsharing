@@ -14,6 +14,10 @@ namespace Serialization
         {
             m_buffer.Resize(0);
             m_buffer.WriteFromBase64(inputBase64String);
+            m_buffer.Seek(0);
+
+            // Header
+
             return false;
         }
 
@@ -135,6 +139,7 @@ namespace Serialization
                 {
                     uint64 stringLengthTotal = pluginSetting.ReadString().Length;
                     uint stringLengthPart1 = Math::Min(15, stringLengthTotal);
+                    // TODO: Need to handle situation where string is longer than this?
                     uint stringLengthPart2 = Math::Max(0, stringLengthTotal - stringLengthPart1);
                     m_buffer.Write(uint8((settingType << 4) | (0x0F & stringLengthPart1)));
                     if (stringLengthPart2 > 0)
@@ -145,15 +150,199 @@ namespace Serialization
                 }
                 else if (pluginSetting.Type == Meta::PluginSettingType::Vec2)
                 {
-                    warn("TODO: Meta::PluginSettingType::Vec2");
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountX;
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountY;
+                    Serialization::BinaryFormatV0::FloatResolution resolutionX;
+                    Serialization::BinaryFormatV0::FloatResolution resolutionY;
+                    int64 packedValueX;
+                    int64 packedValueY;
+
+                    vec2 value = pluginSetting.ReadVec2();
+                    bool determinedFloatPackinX = BinaryFormatV0::DetermineFloatPacking(value.x, byteCountX, resolutionX, packedValueX);
+                    bool determinedFloatPackinY = BinaryFormatV0::DetermineFloatPacking(value.y, byteCountY, resolutionY, packedValueY);
+                    if (determinedFloatPackinX && determinedFloatPackinY)
+                    {
+                        m_buffer.Write(uint8((settingType << 4) | ((0x03 & byteCountX) << 2) | (0x03 & resolutionX)));
+                        m_buffer.Write(uint8(((0x03 & byteCountY) << 6) | ((0x03 & resolutionY) << 4) | (0x0F & 0x00)));
+
+                        if (byteCountX == BinaryFormatV0::FloatByteCount::One)
+                        {
+                            m_buffer.Write(int8(packedValueX));
+                        }
+                        else if (byteCountX == BinaryFormatV0::FloatByteCount::Two)
+                        {
+                            m_buffer.Write(int16(packedValueX));
+                        }
+                        else /* Four Bytes */
+                        {
+                            m_buffer.Write(int(packedValueX));
+                        }
+
+                        if (byteCountY == BinaryFormatV0::FloatByteCount::One)
+                        {
+                            m_buffer.Write(int8(packedValueY));
+                        }
+                        else if (byteCountY == BinaryFormatV0::FloatByteCount::Two)
+                        {
+                            m_buffer.Write(int16(packedValueY));
+                        }
+                        else /* Four Bytes */
+                        {
+                            m_buffer.Write(int(packedValueY));
+                        }
+                    }
+                    else
+                    {
+                        error("ERROR: Unable to serialize vec2 setting \"" + pluginSetting.VarName + "\". Unable to determine packing");
+                    }
                 }
                 else if (pluginSetting.Type == Meta::PluginSettingType::Vec3)
                 {
-                    warn("TODO: Meta::PluginSettingType::Vec3");
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountX;
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountY;
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountZ;
+                    Serialization::BinaryFormatV0::FloatResolution resolutionX;
+                    Serialization::BinaryFormatV0::FloatResolution resolutionY;
+                    Serialization::BinaryFormatV0::FloatResolution resolutionZ;
+                    int64 packedValueX;
+                    int64 packedValueY;
+                    int64 packedValueZ;
+
+                    vec3 value = pluginSetting.ReadVec3();
+                    bool determinedFloatPackinX = BinaryFormatV0::DetermineFloatPacking(value.x, byteCountX, resolutionX, packedValueX);
+                    bool determinedFloatPackinY = BinaryFormatV0::DetermineFloatPacking(value.y, byteCountY, resolutionY, packedValueY);
+                    bool determinedFloatPackinZ = BinaryFormatV0::DetermineFloatPacking(value.z, byteCountZ, resolutionZ, packedValueZ);
+                    if (determinedFloatPackinX && determinedFloatPackinY && determinedFloatPackinZ)
+                    {
+                        m_buffer.Write(uint8((settingType << 4) | ((0x03 & byteCountX) << 2) | (0x03 & resolutionX)));
+                        m_buffer.Write(uint8(((0x03 & byteCountY) << 6) | ((0x03 & resolutionY) << 4) | ((0x03 & byteCountZ) << 2) | (0x03 & resolutionZ)));
+
+                        if (byteCountX == BinaryFormatV0::FloatByteCount::One)
+                        {
+                            m_buffer.Write(int8(packedValueX));
+                        }
+                        else if (byteCountX == BinaryFormatV0::FloatByteCount::Two)
+                        {
+                            m_buffer.Write(int16(packedValueX));
+                        }
+                        else /* Four Bytes */
+                        {
+                            m_buffer.Write(int(packedValueX));
+                        }
+
+                        if (byteCountY == BinaryFormatV0::FloatByteCount::One)
+                        {
+                            m_buffer.Write(int8(packedValueY));
+                        }
+                        else if (byteCountY == BinaryFormatV0::FloatByteCount::Two)
+                        {
+                            m_buffer.Write(int16(packedValueY));
+                        }
+                        else /* Four Bytes */
+                        {
+                            m_buffer.Write(int(packedValueY));
+                        }
+
+                        if (byteCountZ == BinaryFormatV0::FloatByteCount::One)
+                        {
+                            m_buffer.Write(int8(packedValueZ));
+                        }
+                        else if (byteCountZ == BinaryFormatV0::FloatByteCount::Two)
+                        {
+                            m_buffer.Write(int16(packedValueZ));
+                        }
+                        else /* Four Bytes */
+                        {
+                            m_buffer.Write(int(packedValueZ));
+                        }
+                    }
+                    else
+                    {
+                        error("ERROR: Unable to serialize vec3 setting \"" + pluginSetting.VarName + "\". Unable to determine packing");
+                    }
                 }
                 else if (pluginSetting.Type == Meta::PluginSettingType::Vec4)
                 {
-                    warn("TODO: Meta::PluginSettingType::Vec4");
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountX;
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountY;
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountZ;
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountW;
+                    Serialization::BinaryFormatV0::FloatResolution resolutionX;
+                    Serialization::BinaryFormatV0::FloatResolution resolutionY;
+                    Serialization::BinaryFormatV0::FloatResolution resolutionZ;
+                    Serialization::BinaryFormatV0::FloatResolution resolutionW;
+                    int64 packedValueX;
+                    int64 packedValueY;
+                    int64 packedValueZ;
+                    int64 packedValueW;
+
+                    vec4 value = pluginSetting.ReadVec4();
+                    bool determinedFloatPackinX = BinaryFormatV0::DetermineFloatPacking(value.x, byteCountX, resolutionX, packedValueX);
+                    bool determinedFloatPackinY = BinaryFormatV0::DetermineFloatPacking(value.y, byteCountY, resolutionY, packedValueY);
+                    bool determinedFloatPackinZ = BinaryFormatV0::DetermineFloatPacking(value.z, byteCountZ, resolutionZ, packedValueZ);
+                    bool determinedFloatPackinW = BinaryFormatV0::DetermineFloatPacking(value.w, byteCountW, resolutionW, packedValueW);
+                    if (determinedFloatPackinX && determinedFloatPackinY && determinedFloatPackinZ && determinedFloatPackinW)
+                    {
+                        m_buffer.Write(uint8((settingType << 4) | ((0x03 & byteCountX) << 2) | (0x03 & resolutionX)));
+                        m_buffer.Write(uint8(((0x03 & byteCountY) << 6) | ((0x03 & resolutionY) << 4) | ((0x03 & byteCountZ) << 2) | (0x03 & resolutionZ)));
+                        m_buffer.Write(uint8(((0x03 & byteCountW) << 6) | ((0x03 & resolutionW) << 4) | (0x0F & 0x00)));
+
+                        if (byteCountX == BinaryFormatV0::FloatByteCount::One)
+                        {
+                            m_buffer.Write(int8(packedValueX));
+                        }
+                        else if (byteCountX == BinaryFormatV0::FloatByteCount::Two)
+                        {
+                            m_buffer.Write(int16(packedValueX));
+                        }
+                        else /* Four Bytes */
+                        {
+                            m_buffer.Write(int(packedValueX));
+                        }
+
+                        if (byteCountY == BinaryFormatV0::FloatByteCount::One)
+                        {
+                            m_buffer.Write(int8(packedValueY));
+                        }
+                        else if (byteCountY == BinaryFormatV0::FloatByteCount::Two)
+                        {
+                            m_buffer.Write(int16(packedValueY));
+                        }
+                        else /* Four Bytes */
+                        {
+                            m_buffer.Write(int(packedValueY));
+                        }
+
+                        if (byteCountZ == BinaryFormatV0::FloatByteCount::One)
+                        {
+                            m_buffer.Write(int8(packedValueZ));
+                        }
+                        else if (byteCountZ == BinaryFormatV0::FloatByteCount::Two)
+                        {
+                            m_buffer.Write(int16(packedValueZ));
+                        }
+                        else /* Four Bytes */
+                        {
+                            m_buffer.Write(int(packedValueZ));
+                        }
+
+                        if (byteCountW == BinaryFormatV0::FloatByteCount::One)
+                        {
+                            m_buffer.Write(int8(packedValueW));
+                        }
+                        else if (byteCountW == BinaryFormatV0::FloatByteCount::Two)
+                        {
+                            m_buffer.Write(int16(packedValueW));
+                        }
+                        else /* Four Bytes */
+                        {
+                            m_buffer.Write(int(packedValueW));
+                        }
+                    }
+                    else
+                    {
+                        error("ERROR: Unable to serialize vec4 setting \"" + pluginSetting.VarName + "\". Unable to determine packing");
+                    }
                 }
                 else
                 {
@@ -170,232 +359,5 @@ namespace Serialization
             }
             return success;
         }
-
-        private void WriteOverallHeader(const uint8&in settingsCount, const uint8&in pluginNameHash)
-        {
-        }
-        private void ReadOverallHeader()
-        {
-        }
-
-        void WriteSetting(Meta::PluginSetting@ setting)
-        {
-            uint16 hashId = Hash16(setting.VarName);
-            uint8 byte2 = (uint8(setting.Type) & 0x0f) << 4;
-
-            if (setting.Type == Meta::PluginSettingType::Bool)
-            {
-                WriteBool(byte2, setting.ReadBool());
-            }
-            else if (setting.Type == Meta::PluginSettingType::Enum
-                || setting.Type == Meta::PluginSettingType::Int8
-                || setting.Type == Meta::PluginSettingType::Int16
-                || setting.Type == Meta::PluginSettingType::Int32)
-            {
-                int64 value = 0;
-                if (setting.Type == Meta::PluginSettingType::Enum)
-                {
-                    value = setting.ReadEnum();
-                }
-                else if (setting.Type == Meta::PluginSettingType::Int8)
-                {
-                    value = setting.ReadInt8();
-                }
-                else if (setting.Type == Meta::PluginSettingType::Int16)
-                {
-                    value = setting.ReadInt16();
-                }
-                else /*if (setting.Type == Meta::PluginSettingType::Int32)*/
-                {
-                    value = setting.ReadInt32();
-                }
-                WriteInteger(byte2, value);
-            }
-        }
-        void ReadSetting()
-        {
-            uint16 hashId = m_buffer.ReadUInt16();
-            uint8 byte2 = m_buffer.ReadUInt8();
-            auto settingType = Meta::PluginSettingType((byte2 >> 4) & 0x0f);
-
-            if (settingType == Meta::PluginSettingType::Bool)
-            {
-                ReadBool(byte2);
-            }
-            else if (settingType == Meta::PluginSettingType::Enum
-                || settingType == Meta::PluginSettingType::Int8
-                || settingType == Meta::PluginSettingType::Int16
-                || settingType == Meta::PluginSettingType::Int32)
-            {
-                ReadInteger(byte2);
-            }
-        }
-
-        void WriteBool(uint8 byte2, bool value)
-        {
-            byte2 |= (value ? 0x01 : 0x00);
-            m_buffer.Write(byte2);
-        }
-        void ReadBool(uint8 byte2)
-        {
-            bool value = (byte2 & 0x01) != 0x00;
-        }
-
-        void WriteInteger(uint8 byte2, int64 value)
-        {
-            if (value < 0)
-            {
-                if (value >= INT8_MIN)
-                {
-                    byte2 |= (0x00 << 2);   // 1 byte
-                    byte2 |= (0x01 << 1);   // signed
-                    m_buffer.Write(byte2);
-                    m_buffer.Write(int8(value));
-                }
-                else if (value >= INT16_MIN)
-                {
-                    byte2 |= (0x01 << 2);   // 2 byte
-                    byte2 |= (0x01 << 1);   // signed
-                    m_buffer.Write(byte2);
-                    m_buffer.Write(int16(value));
-                }
-                else /*if (value >= INT32_MIN)*/
-                {
-                    byte2 |= (0x02 << 2);   // 4 byte
-                    byte2 |= (0x01 << 1);   // signed
-                    m_buffer.Write(byte2);
-                    m_buffer.Write(int(value));
-                }
-            }
-            else
-            {
-                if (uint64(value) <= UINT8_MAX)
-                {
-                    byte2 |= (0x00 << 2);   // 1 byte
-                    byte2 |= (0x00 << 1);   // unsigned
-                    m_buffer.Write(byte2);
-                    m_buffer.Write(uint8(value));
-                }
-                else if (uint64(value) <= UINT16_MAX)
-                {
-                    byte2 |= (0x01 << 2);   // 2 byte
-                    byte2 |= (0x00 << 1);   // unsigned
-                    m_buffer.Write(byte2);
-                    m_buffer.Write(uint16(value));
-                }
-                else /*if (uint64(value) <= UINT32_MAX)*/
-                {
-                    byte2 |= (0x02 << 2);   // 4 byte
-                    byte2 |= (0x00 << 1);   // unsigned
-                    m_buffer.Write(byte2);
-                    m_buffer.Write(uint(value));
-                }
-            }
-        }
-
-        void ReadInteger(uint8 byte2)
-        {
-            uint8 dataByteEnum = (byte2 >> 2) & 0x03;
-            bool isSigned = ((byte2 >> 1) & 0x01) != 0x00;
-            int64 value = 0;
-            if (isSigned)
-            {
-                if (dataByteEnum == 0)
-                {
-                    value = int8(m_buffer.ReadInt8());
-                }
-                else if (dataByteEnum == 1)
-                {
-                    value = int16(m_buffer.ReadInt16());
-                }
-                else if (dataByteEnum == 2)
-                {
-                    value = int(m_buffer.ReadInt32());
-                }
-                else /*if (dataByteEnum == 3)*/
-                {
-                    value = int64(m_buffer.ReadInt64());
-                }
-            }
-            else
-            {
-                if (dataByteEnum == 0)
-                {
-                    value = int8(m_buffer.ReadUInt8());
-                }
-                else if (dataByteEnum == 1)
-                {
-                    value = int16(m_buffer.ReadUInt16());
-                }
-                else if (dataByteEnum == 2)
-                {
-                    value = int(m_buffer.ReadUInt32());
-                }
-                else /*if (dataByteEnum == 3)*/
-                {
-                    value = int64(m_buffer.ReadUInt64());
-                }
-            }
-        }
-
-        // Float
-        // ====================================================================
-        // Byte | Bits | Data               | Description
-        // -----|------|--------------------|----------------------------------
-        //    1 |    2 | Byte Number Enum   | 0=1byte; 1=2bytes; 2=4bytes; 3=8bytes
-        //    1 |    2 | Resolution Enum    | 0=0.001; 1=0.01; 2=0.1; 3=1.0
-        //    n |  8*n | Data               | Scaled float data
-
-        // String
-        // ====================================================================
-        // Byte | Bits | Data               | Description
-        // -----|------|--------------------|----------------------------------
-        //    1 |    4 | Data Byte Count 1  | Number of bytes of data. If set to 15, then another byte of count data will follow
-        //    2 |    8 | Data Byte Count 2  | [OPTIONAL] If previous field was 15 this is included and data count is sum of both
-        // 2/3+ |  n*8 | String Data        | String data of count described
-
-        // Vec2
-        // ====================================================================
-        // Byte | Bits | Data               | Description
-        // -----|------|--------------------|----------------------------------
-        //    1 |    2 | Byte Number Enum X | 0=1byte; 1=2bytes; 2=4bytes; 3=8bytes
-        //    1 |    2 | Resolution Enum X  | 0=0.001; 1=0.01; 2=0.1; 3=1.0
-        //    2 |    2 | Byte Number Enum Y | 0=1byte; 1=2bytes; 2=4bytes; 3=8bytes
-        //    2 |    2 | Resolution Enum Y  | 0=0.001; 1=0.01; 2=0.1; 3=1.0
-        //    2 |    4 | Spare              | Spare
-        //    n |  n*8 | Data X             | Scaled float data X
-        //    n |  n*8 | Data Y             | Scaled float data Y
-
-        // Vec3
-        // ====================================================================
-        // Byte | Bits | Data               | Description
-        // -----|------|--------------------|----------------------------------
-        //    1 |    2 | Byte Number Enum X | 0=1byte; 1=2bytes; 2=4bytes; 3=8bytes
-        //    1 |    2 | Resolution Enum X  | 0=0.001; 1=0.01; 2=0.1; 3=1.0
-        //    2 |    2 | Byte Number Enum Y | 0=1byte; 1=2bytes; 2=4bytes; 3=8bytes
-        //    2 |    2 | Resolution Enum Y  | 0=0.001; 1=0.01; 2=0.1; 3=1.0
-        //    2 |    2 | Byte Number Enum Z | 0=1byte; 1=2bytes; 2=4bytes; 3=8bytes
-        //    2 |    2 | Resolution Enum Z  | 0=0.001; 1=0.01; 2=0.1; 3=1.0
-        //    n |  n*8 | Data X             | Scaled float data X
-        //    n |  n*8 | Data Y             | Scaled float data Y
-        //    n |  n*8 | Data Z             | Scaled float data Z
-
-        // Vec4
-        // ====================================================================
-        // Byte | Bits | Data               | Description
-        // -----|------|--------------------|----------------------------------
-        //    1 |    2 | Byte Number Enum X | 0=1byte; 1=2bytes; 2=4bytes; 3=8bytes
-        //    1 |    2 | Resolution Enum X  | 0=0.001; 1=0.01; 2=0.1; 3=1.0
-        //    2 |    2 | Byte Number Enum Y | 0=1byte; 1=2bytes; 2=4bytes; 3=8bytes
-        //    2 |    2 | Resolution Enum Y  | 0=0.001; 1=0.01; 2=0.1; 3=1.0
-        //    2 |    2 | Byte Number Enum Z | 0=1byte; 1=2bytes; 2=4bytes; 3=8bytes
-        //    2 |    2 | Resolution Enum Z  | 0=0.001; 1=0.01; 2=0.1; 3=1.0
-        //    3 |    2 | Byte Number Enum W | 0=1byte; 1=2bytes; 2=4bytes; 3=8bytes
-        //    3 |    2 | Resolution Enum W  | 0=0.001; 1=0.01; 2=0.1; 3=1.0
-        //    3 |    4 | Spare              | Spare
-        //    n |  n*8 | Data X             | Scaled float data X
-        //    n |  n*8 | Data Y             | Scaled float data Y
-        //    n |  n*8 | Data Z             | Scaled float data Z
-        //    n |  n*8 | Data W             | Scaled float data W
     }
 }

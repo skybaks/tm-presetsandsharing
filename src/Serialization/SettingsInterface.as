@@ -30,7 +30,9 @@ namespace Serialization
         {
             string result = "";
             bool success = m_serializer.WriteToBinary(m_settingsFromPlugin, m_plugin.ID, result);
-            print(result);
+
+            // TODO: Do something with the result?
+            //print(result);
         }
 
         private void ReadPluginSettings()
