@@ -17,6 +17,469 @@ namespace Serialization
             m_buffer.Seek(0);
 
             // Header
+            uint8 headerByte0 = m_buffer.ReadUInt8();
+            uint serializerVersion = (headerByte0 & 0xF0) >> 4;
+            uint8 settingsCount = m_buffer.ReadUInt8();
+            uint8 pluginNameHash = m_buffer.ReadUInt8();
+
+            while (!m_buffer.AtEnd())
+            {
+                uint16 settingId = m_buffer.ReadUInt16();
+                uint8 settingByte2 = m_buffer.ReadUInt8();
+                Meta::PluginSettingType settingType = Meta::PluginSettingType((settingByte2 & 0xF0) >> 4);
+                string stringifiedValue = "";
+                if (settingType == Meta::PluginSettingType::Bool)
+                {
+                    uint boolValue = settingByte2 & 0x01;
+                    stringifiedValue = tostring(boolValue);
+                }
+                else if (settingType == Meta::PluginSettingType::Enum
+                    || settingType == Meta::PluginSettingType::Int8
+                    || settingType == Meta::PluginSettingType::Int16
+                    || settingType == Meta::PluginSettingType::Int32)
+                {
+                    Serialization::BinaryFormatV0::IntegerByteCount byteCount = Serialization::BinaryFormatV0::IntegerByteCount((settingByte2 >> 2) & 0x03);
+                    bool isSigned = (settingByte2 & 0x02) != 0;
+
+                    if (byteCount == BinaryFormatV0::IntegerByteCount::Zero)
+                    {
+                        stringifiedValue = tostring(0);
+                    }
+                    else if (byteCount == BinaryFormatV0::IntegerByteCount::One)
+                    {
+                        if (isSigned)
+                        {
+                            stringifiedValue = tostring(m_buffer.ReadInt8());
+                        }
+                        else
+                        {
+                            stringifiedValue = tostring(m_buffer.ReadUInt8());
+                        }
+                    }
+                    else if (byteCount == BinaryFormatV0::IntegerByteCount::Two)
+                    {
+                        if (isSigned)
+                        {
+                            stringifiedValue = tostring(m_buffer.ReadInt16());
+                        }
+                        else
+                        {
+                            stringifiedValue = tostring(m_buffer.ReadUInt16());
+                        }
+                    }
+                    else /* Four Bytes */
+                    {
+                        if (isSigned)
+                        {
+                            stringifiedValue = tostring(m_buffer.ReadInt32());
+                        }
+                        else
+                        {
+                            stringifiedValue = tostring(m_buffer.ReadUInt32());
+                        }
+                    }
+                }
+                else if (settingType == Meta::PluginSettingType::Float)
+                {
+                    Serialization::BinaryFormatV0::FloatByteCount byteCount = Serialization::BinaryFormatV0::FloatByteCount((settingByte2 >> 2) & 0x03);
+                    Serialization::BinaryFormatV0::FloatResolution resolution = Serialization::BinaryFormatV0::FloatResolution((settingByte2 >> 0) & 0x03);
+                    int64 packedValue = 0;
+                    if (byteCount == BinaryFormatV0::FloatByteCount::Zero)
+                    {
+                        packedValue = 0;
+                    }
+                    else if (byteCount == BinaryFormatV0::FloatByteCount::One)
+                    {
+                        packedValue = m_buffer.ReadInt8();
+                    }
+                    else if (byteCount == BinaryFormatV0::FloatByteCount::Two)
+                    {
+                        packedValue = m_buffer.ReadInt16();
+                    }
+                    else /* Four Bytes */
+                    {
+                        packedValue = m_buffer.ReadInt32();
+                    }
+
+                    if (resolution == BinaryFormatV0::FloatResolution::Thousanths)
+                    {
+                        stringifiedValue = tostring(float(packedValue * 0.001));
+                    }
+                    else if (resolution == BinaryFormatV0::FloatResolution::Hundredths)
+                    {
+                        stringifiedValue = tostring(float(packedValue * 0.01));
+                    }
+                    else if (resolution == BinaryFormatV0::FloatResolution::Tenths)
+                    {
+                        stringifiedValue = tostring(float(packedValue * 0.1));
+                    }
+                    else /* Ones */
+                    {
+                        stringifiedValue = tostring(float(packedValue * 1.0));
+                    }
+                }
+                else if (settingType == Meta::PluginSettingType::String)
+                {
+                    uint64 stringLen = settingByte2 & 0x0F;
+                    if (stringLen == 15)
+                    {
+                        uint additionalStringLen = m_buffer.ReadUInt8();
+                        stringLen += additionalStringLen;
+                    }
+                    stringifiedValue = m_buffer.ReadString(stringLen);
+                }
+                else if (settingType == Meta::PluginSettingType::Vec2)
+                {
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountX = Serialization::BinaryFormatV0::FloatByteCount((settingByte2 >> 2) & 0x03);
+                    Serialization::BinaryFormatV0::FloatResolution resolutionX = Serialization::BinaryFormatV0::FloatResolution((settingByte2 >> 0) & 0x03);
+                    uint8 settingByte3 = m_buffer.ReadUInt8();
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountY = Serialization::BinaryFormatV0::FloatByteCount((settingByte3 >> 6) & 0x03);
+                    Serialization::BinaryFormatV0::FloatResolution resolutionY = Serialization::BinaryFormatV0::FloatResolution((settingByte3 >> 4) & 0x03);
+                    int64 packedValueX = 0;
+                    int64 packedValueY = 0;
+                    if (byteCountX == BinaryFormatV0::FloatByteCount::Zero)
+                    {
+                        packedValueX = 0;
+                    }
+                    else if (byteCountX == BinaryFormatV0::FloatByteCount::One)
+                    {
+                        packedValueX = m_buffer.ReadInt8();
+                    }
+                    else if (byteCountX == BinaryFormatV0::FloatByteCount::Two)
+                    {
+                        packedValueX = m_buffer.ReadInt16();
+                    }
+                    else /* Four Bytes */
+                    {
+                        packedValueX = m_buffer.ReadInt32();
+                    }
+
+                    if (byteCountY == BinaryFormatV0::FloatByteCount::Zero)
+                    {
+                        packedValueY = 0;
+                    }
+                    else if (byteCountY == BinaryFormatV0::FloatByteCount::One)
+                    {
+                        packedValueY = m_buffer.ReadInt8();
+                    }
+                    else if (byteCountY == BinaryFormatV0::FloatByteCount::Two)
+                    {
+                        packedValueY = m_buffer.ReadInt16();
+                    }
+                    else /* Four Bytes */
+                    {
+                        packedValueY = m_buffer.ReadInt32();
+                    }
+
+                    if (resolutionX == BinaryFormatV0::FloatResolution::Thousanths)
+                    {
+                        stringifiedValue += tostring(float(packedValueX * 0.001)) + ";";
+                    }
+                    else if (resolutionX == BinaryFormatV0::FloatResolution::Hundredths)
+                    {
+                        stringifiedValue += tostring(float(packedValueX * 0.01)) + ";";
+                    }
+                    else if (resolutionX == BinaryFormatV0::FloatResolution::Tenths)
+                    {
+                        stringifiedValue += tostring(float(packedValueX * 0.1)) + ";";
+                    }
+                    else /* Ones */
+                    {
+                        stringifiedValue += tostring(float(packedValueX * 1.0)) + ";";
+                    }
+
+                    if (resolutionY == BinaryFormatV0::FloatResolution::Thousanths)
+                    {
+                        stringifiedValue += tostring(float(packedValueY * 0.001));
+                    }
+                    else if (resolutionY == BinaryFormatV0::FloatResolution::Hundredths)
+                    {
+                        stringifiedValue += tostring(float(packedValueY * 0.01));
+                    }
+                    else if (resolutionY == BinaryFormatV0::FloatResolution::Tenths)
+                    {
+                        stringifiedValue += tostring(float(packedValueY * 0.1));
+                    }
+                    else /* Ones */
+                    {
+                        stringifiedValue += tostring(float(packedValueY * 1.0));
+                    }
+                }
+                else if (settingType == Meta::PluginSettingType::Vec3)
+                {
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountX = Serialization::BinaryFormatV0::FloatByteCount((settingByte2 >> 2) & 0x03);
+                    Serialization::BinaryFormatV0::FloatResolution resolutionX = Serialization::BinaryFormatV0::FloatResolution((settingByte2 >> 0) & 0x03);
+                    uint8 settingByte3 = m_buffer.ReadUInt8();
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountY = Serialization::BinaryFormatV0::FloatByteCount((settingByte3 >> 6) & 0x03);
+                    Serialization::BinaryFormatV0::FloatResolution resolutionY = Serialization::BinaryFormatV0::FloatResolution((settingByte3 >> 4) & 0x03);
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountZ = Serialization::BinaryFormatV0::FloatByteCount((settingByte3 >> 2) & 0x03);
+                    Serialization::BinaryFormatV0::FloatResolution resolutionZ = Serialization::BinaryFormatV0::FloatResolution((settingByte3 >> 0) & 0x03);
+                    int64 packedValueX = 0;
+                    int64 packedValueY = 0;
+                    int64 packedValueZ = 0;
+                    if (byteCountX == BinaryFormatV0::FloatByteCount::Zero)
+                    {
+                        packedValueX = 0;
+                    }
+                    else if (byteCountX == BinaryFormatV0::FloatByteCount::One)
+                    {
+                        packedValueX = m_buffer.ReadInt8();
+                    }
+                    else if (byteCountX == BinaryFormatV0::FloatByteCount::Two)
+                    {
+                        packedValueX = m_buffer.ReadInt16();
+                    }
+                    else /* Four Bytes */
+                    {
+                        packedValueX = m_buffer.ReadInt32();
+                    }
+
+                    if (byteCountY == BinaryFormatV0::FloatByteCount::Zero)
+                    {
+                        packedValueY = 0;
+                    }
+                    else if (byteCountY == BinaryFormatV0::FloatByteCount::One)
+                    {
+                        packedValueY = m_buffer.ReadInt8();
+                    }
+                    else if (byteCountY == BinaryFormatV0::FloatByteCount::Two)
+                    {
+                        packedValueY = m_buffer.ReadInt16();
+                    }
+                    else /* Four Bytes */
+                    {
+                        packedValueY = m_buffer.ReadInt32();
+                    }
+
+                    if (byteCountZ == BinaryFormatV0::FloatByteCount::Zero)
+                    {
+                        packedValueZ = 0;
+                    }
+                    else if (byteCountZ == BinaryFormatV0::FloatByteCount::One)
+                    {
+                        packedValueZ = m_buffer.ReadInt8();
+                    }
+                    else if (byteCountZ == BinaryFormatV0::FloatByteCount::Two)
+                    {
+                        packedValueZ = m_buffer.ReadInt16();
+                    }
+                    else /* Four Bytes */
+                    {
+                        packedValueZ = m_buffer.ReadInt32();
+                    }
+
+                    if (resolutionX == BinaryFormatV0::FloatResolution::Thousanths)
+                    {
+                        stringifiedValue += tostring(float(packedValueX * 0.001)) + ";";
+                    }
+                    else if (resolutionX == BinaryFormatV0::FloatResolution::Hundredths)
+                    {
+                        stringifiedValue += tostring(float(packedValueX * 0.01)) + ";";
+                    }
+                    else if (resolutionX == BinaryFormatV0::FloatResolution::Tenths)
+                    {
+                        stringifiedValue += tostring(float(packedValueX * 0.1)) + ";";
+                    }
+                    else /* Ones */
+                    {
+                        stringifiedValue += tostring(float(packedValueX * 1.0)) + ";";
+                    }
+
+                    if (resolutionY == BinaryFormatV0::FloatResolution::Thousanths)
+                    {
+                        stringifiedValue += tostring(float(packedValueY * 0.001)) + ";";
+                    }
+                    else if (resolutionY == BinaryFormatV0::FloatResolution::Hundredths)
+                    {
+                        stringifiedValue += tostring(float(packedValueY * 0.01)) + ";";
+                    }
+                    else if (resolutionY == BinaryFormatV0::FloatResolution::Tenths)
+                    {
+                        stringifiedValue += tostring(float(packedValueY * 0.1)) + ";";
+                    }
+                    else /* Ones */
+                    {
+                        stringifiedValue += tostring(float(packedValueY * 1.0)) + ";";
+                    }
+
+                    if (resolutionZ == BinaryFormatV0::FloatResolution::Thousanths)
+                    {
+                        stringifiedValue += tostring(float(packedValueZ * 0.001));
+                    }
+                    else if (resolutionZ == BinaryFormatV0::FloatResolution::Hundredths)
+                    {
+                        stringifiedValue += tostring(float(packedValueZ * 0.01));
+                    }
+                    else if (resolutionZ == BinaryFormatV0::FloatResolution::Tenths)
+                    {
+                        stringifiedValue += tostring(float(packedValueZ * 0.1));
+                    }
+                    else /* Ones */
+                    {
+                        stringifiedValue += tostring(float(packedValueZ * 1.0));
+                    }
+                }
+                else if (settingType == Meta::PluginSettingType::Vec4)
+                {
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountX = Serialization::BinaryFormatV0::FloatByteCount((settingByte2 >> 2) & 0x03);
+                    Serialization::BinaryFormatV0::FloatResolution resolutionX = Serialization::BinaryFormatV0::FloatResolution((settingByte2 >> 0) & 0x03);
+                    uint8 settingByte3 = m_buffer.ReadUInt8();
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountY = Serialization::BinaryFormatV0::FloatByteCount((settingByte3 >> 6) & 0x03);
+                    Serialization::BinaryFormatV0::FloatResolution resolutionY = Serialization::BinaryFormatV0::FloatResolution((settingByte3 >> 4) & 0x03);
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountZ = Serialization::BinaryFormatV0::FloatByteCount((settingByte3 >> 2) & 0x03);
+                    Serialization::BinaryFormatV0::FloatResolution resolutionZ = Serialization::BinaryFormatV0::FloatResolution((settingByte3 >> 0) & 0x03);
+                    uint8 settingByte4 = m_buffer.ReadUInt8();
+                    Serialization::BinaryFormatV0::FloatByteCount byteCountW = Serialization::BinaryFormatV0::FloatByteCount((settingByte4 >> 6) & 0x03);
+                    Serialization::BinaryFormatV0::FloatResolution resolutionW = Serialization::BinaryFormatV0::FloatResolution((settingByte4 >> 4) & 0x03);
+                    int64 packedValueX = 0;
+                    int64 packedValueY = 0;
+                    int64 packedValueZ = 0;
+                    int64 packedValueW = 0;
+                    if (byteCountX == BinaryFormatV0::FloatByteCount::Zero)
+                    {
+                        packedValueX = 0;
+                    }
+                    else if (byteCountX == BinaryFormatV0::FloatByteCount::One)
+                    {
+                        packedValueX = m_buffer.ReadInt8();
+                    }
+                    else if (byteCountX == BinaryFormatV0::FloatByteCount::Two)
+                    {
+                        packedValueX = m_buffer.ReadInt16();
+                    }
+                    else /* Four Bytes */
+                    {
+                        packedValueX = m_buffer.ReadInt32();
+                    }
+
+                    if (byteCountY == BinaryFormatV0::FloatByteCount::Zero)
+                    {
+                        packedValueY = 0;
+                    }
+                    else if (byteCountY == BinaryFormatV0::FloatByteCount::One)
+                    {
+                        packedValueY = m_buffer.ReadInt8();
+                    }
+                    else if (byteCountY == BinaryFormatV0::FloatByteCount::Two)
+                    {
+                        packedValueY = m_buffer.ReadInt16();
+                    }
+                    else /* Four Bytes */
+                    {
+                        packedValueY = m_buffer.ReadInt32();
+                    }
+
+                    if (byteCountZ == BinaryFormatV0::FloatByteCount::Zero)
+                    {
+                        packedValueZ = 0;
+                    }
+                    else if (byteCountZ == BinaryFormatV0::FloatByteCount::One)
+                    {
+                        packedValueZ = m_buffer.ReadInt8();
+                    }
+                    else if (byteCountZ == BinaryFormatV0::FloatByteCount::Two)
+                    {
+                        packedValueZ = m_buffer.ReadInt16();
+                    }
+                    else /* Four Bytes */
+                    {
+                        packedValueZ = m_buffer.ReadInt32();
+                    }
+
+                    if (byteCountW == BinaryFormatV0::FloatByteCount::Zero)
+                    {
+                        packedValueW = 0;
+                    }
+                    else if (byteCountW == BinaryFormatV0::FloatByteCount::One)
+                    {
+                        packedValueW = m_buffer.ReadInt8();
+                    }
+                    else if (byteCountW == BinaryFormatV0::FloatByteCount::Two)
+                    {
+                        packedValueW = m_buffer.ReadInt16();
+                    }
+                    else /* Four Bytes */
+                    {
+                        packedValueW = m_buffer.ReadInt32();
+                    }
+
+                    if (resolutionX == BinaryFormatV0::FloatResolution::Thousanths)
+                    {
+                        stringifiedValue += tostring(float(packedValueX * 0.001)) + ";";
+                    }
+                    else if (resolutionX == BinaryFormatV0::FloatResolution::Hundredths)
+                    {
+                        stringifiedValue += tostring(float(packedValueX * 0.01)) + ";";
+                    }
+                    else if (resolutionX == BinaryFormatV0::FloatResolution::Tenths)
+                    {
+                        stringifiedValue += tostring(float(packedValueX * 0.1)) + ";";
+                    }
+                    else /* Ones */
+                    {
+                        stringifiedValue += tostring(float(packedValueX * 1.0)) + ";";
+                    }
+
+                    if (resolutionY == BinaryFormatV0::FloatResolution::Thousanths)
+                    {
+                        stringifiedValue += tostring(float(packedValueY * 0.001)) + ";";
+                    }
+                    else if (resolutionY == BinaryFormatV0::FloatResolution::Hundredths)
+                    {
+                        stringifiedValue += tostring(float(packedValueY * 0.01)) + ";";
+                    }
+                    else if (resolutionY == BinaryFormatV0::FloatResolution::Tenths)
+                    {
+                        stringifiedValue += tostring(float(packedValueY * 0.1)) + ";";
+                    }
+                    else /* Ones */
+                    {
+                        stringifiedValue += tostring(float(packedValueY * 1.0)) + ";";
+                    }
+
+                    if (resolutionZ == BinaryFormatV0::FloatResolution::Thousanths)
+                    {
+                        stringifiedValue += tostring(float(packedValueZ * 0.001)) + ";";
+                    }
+                    else if (resolutionZ == BinaryFormatV0::FloatResolution::Hundredths)
+                    {
+                        stringifiedValue += tostring(float(packedValueZ * 0.01)) + ";";
+                    }
+                    else if (resolutionZ == BinaryFormatV0::FloatResolution::Tenths)
+                    {
+                        stringifiedValue += tostring(float(packedValueZ * 0.1)) + ";";
+                    }
+                    else /* Ones */
+                    {
+                        stringifiedValue += tostring(float(packedValueZ * 1.0)) + ";";
+                    }
+
+                    if (resolutionW == BinaryFormatV0::FloatResolution::Thousanths)
+                    {
+                        stringifiedValue += tostring(float(packedValueW * 0.001));
+                    }
+                    else if (resolutionW == BinaryFormatV0::FloatResolution::Hundredths)
+                    {
+                        stringifiedValue += tostring(float(packedValueW * 0.01));
+                    }
+                    else if (resolutionW == BinaryFormatV0::FloatResolution::Tenths)
+                    {
+                        stringifiedValue += tostring(float(packedValueW * 0.1));
+                    }
+                    else /* Ones */
+                    {
+                        stringifiedValue += tostring(float(packedValueW * 1.0));
+                    }
+                }
+                else
+                {
+                    error("ERROR: Unknown or unexpected plugin setting type encountered while reading binary.");
+                }
+                auto newSetting = Serialization::SettingsDataItem();
+                newSetting.m_SettingType = settingType;
+                newSetting.m_ValueStringified = stringifiedValue;
+                settingsResult[tostring(settingId)] = newSetting;
+            }
 
             return false;
         }
@@ -125,7 +588,7 @@ namespace Serialization
                         {
                             m_buffer.Write(int16(packedValue));
                         }
-                        else /* Four Bytes */
+                        else if (byteCount == BinaryFormatV0::FloatByteCount::Four)
                         {
                             m_buffer.Write(int(packedValue));
                         }
@@ -173,7 +636,7 @@ namespace Serialization
                         {
                             m_buffer.Write(int16(packedValueX));
                         }
-                        else /* Four Bytes */
+                        else if (byteCountX == BinaryFormatV0::FloatByteCount::Four)
                         {
                             m_buffer.Write(int(packedValueX));
                         }
@@ -186,7 +649,7 @@ namespace Serialization
                         {
                             m_buffer.Write(int16(packedValueY));
                         }
-                        else /* Four Bytes */
+                        else if (byteCountY == BinaryFormatV0::FloatByteCount::Four)
                         {
                             m_buffer.Write(int(packedValueY));
                         }
@@ -225,7 +688,7 @@ namespace Serialization
                         {
                             m_buffer.Write(int16(packedValueX));
                         }
-                        else /* Four Bytes */
+                        else if (byteCountX == BinaryFormatV0::FloatByteCount::Four)
                         {
                             m_buffer.Write(int(packedValueX));
                         }
@@ -238,7 +701,7 @@ namespace Serialization
                         {
                             m_buffer.Write(int16(packedValueY));
                         }
-                        else /* Four Bytes */
+                        else if (byteCountY == BinaryFormatV0::FloatByteCount::Four)
                         {
                             m_buffer.Write(int(packedValueY));
                         }
@@ -251,7 +714,7 @@ namespace Serialization
                         {
                             m_buffer.Write(int16(packedValueZ));
                         }
-                        else /* Four Bytes */
+                        else if (byteCountZ == BinaryFormatV0::FloatByteCount::Four)
                         {
                             m_buffer.Write(int(packedValueZ));
                         }
@@ -295,7 +758,7 @@ namespace Serialization
                         {
                             m_buffer.Write(int16(packedValueX));
                         }
-                        else /* Four Bytes */
+                        else if (byteCountX == BinaryFormatV0::FloatByteCount::Four)
                         {
                             m_buffer.Write(int(packedValueX));
                         }
@@ -308,7 +771,7 @@ namespace Serialization
                         {
                             m_buffer.Write(int16(packedValueY));
                         }
-                        else /* Four Bytes */
+                        else if (byteCountY == BinaryFormatV0::FloatByteCount::Four)
                         {
                             m_buffer.Write(int(packedValueY));
                         }
@@ -321,7 +784,7 @@ namespace Serialization
                         {
                             m_buffer.Write(int16(packedValueZ));
                         }
-                        else /* Four Bytes */
+                        else if (byteCountZ == BinaryFormatV0::FloatByteCount::Four)
                         {
                             m_buffer.Write(int(packedValueZ));
                         }
@@ -334,7 +797,7 @@ namespace Serialization
                         {
                             m_buffer.Write(int16(packedValueW));
                         }
-                        else /* Four Bytes */
+                        else if (byteCountW == BinaryFormatV0::FloatByteCount::Four)
                         {
                             m_buffer.Write(int(packedValueW));
                         }
