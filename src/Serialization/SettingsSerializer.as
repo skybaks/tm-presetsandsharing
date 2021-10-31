@@ -36,6 +36,7 @@ namespace Serialization
                 m_buffer.Write(uint16(Text::ParseUInt(keys[i])));
                 Meta::PluginSetting@ pluginSetting = cast<Meta::PluginSetting>(inputSettings[keys[i]]);
                 uint8 settingType = 0x0F & uint8(pluginSetting.Type);
+
                 if (pluginSetting.Type == Meta::PluginSettingType::Bool)
                 {
                     m_buffer.Write(uint8((settingType << 4) | (pluginSetting.ReadBool() ? 0x01 : 0x00)));
@@ -45,6 +46,118 @@ namespace Serialization
                     || pluginSetting.Type == Meta::PluginSettingType::Int16
                     || pluginSetting.Type == Meta::PluginSettingType::Int32)
                 {
+                    int64 value = 0;
+                    switch (pluginSetting.Type)
+                    {
+                    case Meta::PluginSettingType::Enum:
+                        value = int64(pluginSetting.ReadEnum());
+                        break;
+                    case Meta::PluginSettingType::Int8:
+                        value = int64(pluginSetting.ReadInt8());
+                        break;
+                    case Meta::PluginSettingType::Int16:
+                        value = int64(pluginSetting.ReadInt16());
+                        break;
+                    case Meta::PluginSettingType::Int32:
+                    default:
+                        value = int64(pluginSetting.ReadInt32());
+                        break;
+                    }
+                    if (value == 0)
+                    {
+                        m_buffer.Write(uint8((settingType << 4) | ((0x03 & BinaryFormatV0::IntegerByteCount::Zero) << 2) | (0x00 << 1)));
+                    }
+                    else if (value < 0)
+                    {
+                        if (value >= INT8_MIN)
+                        {
+                            m_buffer.Write(uint8((settingType << 4) | ((0x03 & BinaryFormatV0::IntegerByteCount::One) << 2) | (0x01 << 1)));
+                            m_buffer.Write(int8(value));
+                        }
+                        else if (value >= INT16_MIN)
+                        {
+                            m_buffer.Write(uint8((settingType << 4) | ((0x03 & BinaryFormatV0::IntegerByteCount::Two) << 2) | (0x01 << 1)));
+                            m_buffer.Write(int16(value));
+                        }
+                        else /* INT32 */
+                        {
+                            m_buffer.Write(uint8((settingType << 4) | ((0x03 & BinaryFormatV0::IntegerByteCount::Four) << 2) | (0x01 << 1)));
+                            m_buffer.Write(int(value));
+                        }
+                    }
+                    else
+                    {
+                        if (uint64(value) <= UINT8_MAX)
+                        {
+                            m_buffer.Write(uint8((settingType << 4) | ((0x03 & BinaryFormatV0::IntegerByteCount::One) << 2) | (0x00 << 1)));
+                            m_buffer.Write(uint8(value));
+                        }
+                        else if (uint64(value) <= UINT16_MAX)
+                        {
+                            m_buffer.Write(uint8((settingType << 4) | ((0x03 & BinaryFormatV0::IntegerByteCount::Two) << 2) | (0x00 << 1)));
+                            m_buffer.Write(uint16(value));
+                        }
+                        else /* UINT32 */
+                        {
+                            m_buffer.Write(uint8((settingType << 4) | ((0x03 & BinaryFormatV0::IntegerByteCount::Four) << 2) | (0x00 << 1)));
+                            m_buffer.Write(uint(value));
+                        }
+                    }
+                }
+                else if (pluginSetting.Type == Meta::PluginSettingType::Float)
+                {
+                    Serialization::BinaryFormatV0::FloatByteCount byteCount;
+                    Serialization::BinaryFormatV0::FloatResolution resolution;
+                    int64 packedValue;
+                    bool determinedFloatPacking = BinaryFormatV0::DetermineFloatPacking(pluginSetting.ReadFloat(), byteCount, resolution, packedValue);
+                    if (determinedFloatPacking)
+                    {
+                        m_buffer.Write(uint8((settingType << 4) | ((0x03 & byteCount) << 2) | (0x03 & resolution)));
+                        if (byteCount == BinaryFormatV0::FloatByteCount::One)
+                        {
+                            m_buffer.Write(int8(packedValue));
+                        }
+                        else if (byteCount == BinaryFormatV0::FloatByteCount::Two)
+                        {
+                            m_buffer.Write(int16(packedValue));
+                        }
+                        else /* Four Bytes */
+                        {
+                            m_buffer.Write(int(packedValue));
+                        }
+                    }
+                    else
+                    {
+                        error("ERROR: Unable to serialize float setting \"" + pluginSetting.VarName + "\". Unable to determine packing");
+                    }
+                }
+                else if (pluginSetting.Type == Meta::PluginSettingType::String)
+                {
+                    uint64 stringLengthTotal = pluginSetting.ReadString().Length;
+                    uint stringLengthPart1 = Math::Min(15, stringLengthTotal);
+                    uint stringLengthPart2 = Math::Max(0, stringLengthTotal - stringLengthPart1);
+                    m_buffer.Write(uint8((settingType << 4) | (0x0F & stringLengthPart1)));
+                    if (stringLengthPart2 > 0)
+                    {
+                        m_buffer.Write(uint8(stringLengthPart2));
+                    }
+                    m_buffer.Write(pluginSetting.ReadString());
+                }
+                else if (pluginSetting.Type == Meta::PluginSettingType::Vec2)
+                {
+                    warn("TODO: Meta::PluginSettingType::Vec2");
+                }
+                else if (pluginSetting.Type == Meta::PluginSettingType::Vec3)
+                {
+                    warn("TODO: Meta::PluginSettingType::Vec3");
+                }
+                else if (pluginSetting.Type == Meta::PluginSettingType::Vec4)
+                {
+                    warn("TODO: Meta::PluginSettingType::Vec4");
+                }
+                else
+                {
+                    error("ERROR: Unexpected Setting Type");
                 }
             }
 

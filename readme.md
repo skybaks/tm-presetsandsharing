@@ -35,7 +35,23 @@ A plugin for Openplanet in Trackmania.
 
 ### Float Setting
 
+| Byte | Bits | Data               | Description                        |
+|------|------|--------------------|------------------------------------|
+|  0-1 | 0-15 | VarName hash       | Hash of settings variable name     |
+|    2 |  0-3 | Setting type       | Type enumeration                   |
+|    2 |  4-5 | Byte Number Enum   | 0=0byte; 1=1byte; 2=2byte; 3=4byte |
+|    2 |  6-7 | Resolution Enum    | 0=0.001; 1=0.01; 2=0.1; 3=1.0      |
+|    n |  8*n | Data               | Scaled float data                  |
+
 ### String Setting
+
+| Byte | Bits | Data               | Description                                                                        |
+|------|------|--------------------|------------------------------------------------------------------------------------|
+|  0-1 | 0-15 | VarName hash       | Hash of settings variable name                                                     |
+|    2 |  0-3 | Setting type       | Type enumeration                                                                   |
+|    2 |  4-7 | Data Byte Count 1  | Number of bytes of data. If set to 15, then another byte of count data will follow |
+|    3 |  0-7 | Data Byte Count 2  | [OPTIONAL] If previous field was 15 this is included and data count is sum of both |
+|   3+ |  n*8 | String Data        | String data of count described                                                     |
 
 ### Vec2 Setting
 
