@@ -10,19 +10,26 @@ namespace Serialization
         }
 
         // Dictionary Format: string, Serialization::SettingsDataItem@
-        bool ReadFromBinary(const string&in inputBase64String, dictionary@ settingsResult)
+        bool ReadFromBinary(const string&in inputBase64String, uint8&out pluginIdResult, dictionary@ settingsResult)
         {
             m_buffer.Resize(0);
             m_buffer.WriteFromBase64(inputBase64String);
-            m_buffer.Seek(0);
 
-            // Header
+            bool validParity = CheckParity();
+            if (!validParity)
+            {
+                error("Error reading binary settings. Parity check failed.");
+                return false;
+            }
+
+            m_buffer.Seek(0);
             uint8 headerByte0 = m_buffer.ReadUInt8();
             uint serializerVersion = (headerByte0 & 0xF0) >> 4;
             uint8 settingsCount = m_buffer.ReadUInt8();
-            uint8 pluginNameHash = m_buffer.ReadUInt8();
+            pluginIdResult = m_buffer.ReadUInt8();
 
-            while (!m_buffer.AtEnd())
+            uint settingsRead = 0;
+            while (!m_buffer.AtEnd() && settingsRead < settingsCount)
             {
                 uint16 settingId = m_buffer.ReadUInt16();
                 uint8 settingByte2 = m_buffer.ReadUInt8();
@@ -139,13 +146,15 @@ namespace Serialization
                 {
                     error("ERROR: Unknown or unexpected plugin setting type encountered while reading binary.");
                 }
+
                 auto newSetting = Serialization::SettingsDataItem();
                 newSetting.m_SettingType = settingType;
                 newSetting.m_ValueStringified = stringifiedValue;
                 settingsResult[tostring(settingId)] = newSetting;
+                settingsRead += 1;
             }
 
-            return false;
+            return true;
         }
 
         // Dictionary Format: string, Meta::PluginSetting@
@@ -156,7 +165,6 @@ namespace Serialization
 
             const uint8 SERIALIZER_VERSION = 0;
 
-            // Header
             m_buffer.Write(uint8(((SERIALIZER_VERSION & 0x0F) << 4) | (0 & 0x0F)));
             m_buffer.Write(uint8(inputSettings.GetSize()));
             m_buffer.Write(uint8(Hash8(pluginId)));
@@ -361,6 +369,8 @@ namespace Serialization
                 }
             }
 
+            EncodeParity();
+
             resultBase64String = "";
             if (m_buffer.GetSize() > 0)
             {
@@ -431,6 +441,34 @@ namespace Serialization
             }
 
             return result;
+        }
+
+        private uint8 CalculateParity(uint64 len)
+        {
+            m_buffer.Seek(0);
+            uint8[] byteArray = {};
+            for (uint i = 0; i < len; i++) { byteArray.InsertLast(m_buffer.ReadUInt8()); }
+            return Hash8(byteArray);
+        }
+
+        private void EncodeParity()
+        {
+            uint8 parity = CalculateParity(m_buffer.GetSize());
+            m_buffer.Seek(m_buffer.GetSize());
+            m_buffer.Write(parity);
+        }
+
+        private bool CheckParity()
+        {
+            bool valid = false;
+            m_buffer.Seek(m_buffer.GetSize() - 1);
+            uint8 parityRead = m_buffer.ReadUInt8();
+            uint8 parityCalc = CalculateParity(m_buffer.GetSize() - 1);
+            if (parityRead == parityCalc)
+            {
+                valid = true;
+            }
+            return valid;
         }
     }
 }

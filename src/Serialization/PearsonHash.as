@@ -13,6 +13,15 @@ namespace Serialization
         }
         return hash;
     }
+    uint8 Hash8(const uint8[]&in input)
+    {
+        uint8 hash = input.Length % 256;
+        for (uint i = 0; i < input.Length; i++)
+        {
+            hash = PearsonHashTable[hash ^ uint8(input[i])];
+        }
+        return hash;
+    }
     // Pearson Hash
     // Ref: https://en.wikipedia.org/wiki/Pearson_hashing
     uint16 Hash16(const string&in input)

@@ -23,7 +23,14 @@ namespace Serialization
 
         void ReadAndValidateBinary(const string&in inputBase64String)
         {
-            bool readSuccess = m_serializer.ReadFromBinary(inputBase64String, m_settingsFromBinary);
+            uint8 pluginIdFromBinary;
+            bool readSuccess = m_serializer.ReadFromBinary(inputBase64String, pluginIdFromBinary, m_settingsFromBinary);
+
+            bool pluginIdMatch = pluginIdFromBinary == Hash8(m_plugin.Name);
+            if (!pluginIdMatch)
+            {
+                error("Error unpacking binary. Plugin ID mismatch.");
+            }
 
             bool validationSuccess = true;
             if (readSuccess)
@@ -32,11 +39,8 @@ namespace Serialization
                 for (uint i = 0; i < keys.Length; i++)
                 {
                     auto bin = cast<Serialization::SettingsDataItem>(m_settingsFromBinary[keys[i]]);
-                    if (m_settingsFromPlugin.Exists(keys[i])
-                        && cast<Meta::PluginSetting>(m_settingsFromPlugin[keys[i]]).Type == bin.m_SettingType)
-                    {
-                    }
-                    else
+                    if (!m_settingsFromPlugin.Exists(keys[i])
+                        || cast<Meta::PluginSetting>(m_settingsFromPlugin[keys[i]]).Type != bin.m_SettingType)
                     {
                         validationSuccess = false;
                         error("Non matching setting ID: " + keys[i]);
@@ -44,7 +48,7 @@ namespace Serialization
                 }
             }
 
-            if (!readSuccess || !validationSuccess)
+            if (!readSuccess || !pluginIdMatch || !validationSuccess)
             {
                 m_settingsFromBinary.DeleteAll();
                 error("Issue detected during read and validation. Unable to safely deserialize.");
@@ -54,7 +58,7 @@ namespace Serialization
         void WriteCurrentToBinary()
         {
             string result = "";
-            bool success = m_serializer.WriteToBinary(m_settingsFromPlugin, m_plugin.ID, result);
+            bool success = m_serializer.WriteToBinary(m_settingsFromPlugin, m_plugin.Name, result);
 
             // TODO: Do something with the result?
             print(result);
