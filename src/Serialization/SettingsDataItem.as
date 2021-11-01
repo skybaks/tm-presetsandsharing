@@ -37,7 +37,7 @@ namespace Serialization
 
         vec2 ReadVec2()
         {
-            string[]@ splitValue = m_ValueStringified.Split(",");
+            string[]@ splitValue = m_ValueStringified.Split(";");
             if (splitValue.Length == 2)
             {
                 return vec2(Text::ParseFloat(splitValue[0]), Text::ParseFloat(splitValue[1]));
@@ -50,7 +50,7 @@ namespace Serialization
 
         vec3 ReadVec3()
         {
-            string[]@ splitValue = m_ValueStringified.Split(",");
+            string[]@ splitValue = m_ValueStringified.Split(";");
             if (splitValue.Length == 3)
             {
                 return vec3(Text::ParseFloat(splitValue[0]), Text::ParseFloat(splitValue[1]), Text::ParseFloat(splitValue[2]));
@@ -63,7 +63,7 @@ namespace Serialization
 
         vec4 ReadVec4()
         {
-            string[]@ splitValue = m_ValueStringified.Split(",");
+            string[]@ splitValue = m_ValueStringified.Split(";");
             if (splitValue.Length == 4)
             {
                 return vec4(Text::ParseFloat(splitValue[0]), Text::ParseFloat(splitValue[1]), Text::ParseFloat(splitValue[2]), Text::ParseFloat(splitValue[2]));
