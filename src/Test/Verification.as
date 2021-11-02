@@ -27,75 +27,92 @@ namespace Test
             g_CurrTestName = "";
         }
 
-        bool AreEqual(bool expected, bool actual)
+        bool Condition(bool actual, string errorMsg = "")
+        {
+            if (!actual)
+            {
+                g_AssertsFailed += 1;
+                error(g_CurrTestName + ": Condition Failed! " + errorMsg);
+                throw("");
+            }
+            return actual;
+        }
+
+        bool AreEqual(bool expected, bool actual, string errorMsg = "")
         {
             bool test = expected == actual;
             if (!test)
             {
                 g_AssertsFailed += 1;
-                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
+                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual) + ". " + errorMsg);
+                throw("");
             }
             return test;
         }
 
-        bool AreEqual(uint expected, uint actual)
+        bool AreEqual(uint expected, uint actual, string errorMsg = "")
         {
             bool test = expected == actual;
             if (!test)
             {
                 g_AssertsFailed += 1;
-                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
+                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual) + ". " + errorMsg);
+                throw("");
             }
             return test;
         }
 
-        bool AreEqual(int expected, int actual)
+        bool AreEqual(int expected, int actual, string errorMsg = "")
         {
             bool test = expected == actual;
             if (!test)
             {
                 g_AssertsFailed += 1;
-                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
+                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual) + ". " + errorMsg);
+                throw("");
             }
             return test;
         }
 
-        bool AreEqual(float expected, float actual)
+        bool AreEqual(float expected, float actual, string errorMsg = "")
         {
             // TODO: Allow a precision tolerance?
             bool test = expected == actual;
             if (!test)
             {
                 g_AssertsFailed += 1;
-                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
+                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual) + ". " + errorMsg);
+                throw("");
             }
             return test;
         }
 
-        bool AreEqual(string expected, string actual)
+        bool AreEqual(string expected, string actual, string errorMsg = "")
         {
             bool test = expected == actual;
             if (!test)
             {
                 g_AssertsFailed += 1;
-                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
+                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual) + ". " + errorMsg);
+                throw("");
             }
             return test;
         }
 
-        bool AreEqual(vec2 expected, vec2 actual)
+        bool AreEqual(vec2 expected, vec2 actual, string errorMsg = "")
         {
             bool test = expected.x == actual.x
                 && expected.y == actual.y;
             if (!test)
             {
                 g_AssertsFailed += 1;
-                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
+                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual) + ". " + errorMsg);
+                throw("");
             }
             return test;
         }
 
-        bool AreEqual(vec3 expected, vec3 actual)
+        bool AreEqual(vec3 expected, vec3 actual, string errorMsg = "")
         {
             bool test = expected.x == actual.x
                 && expected.y == actual.y
@@ -103,12 +120,13 @@ namespace Test
             if (!test)
             {
                 g_AssertsFailed += 1;
-                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
+                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual) + ". " + errorMsg);
+                throw("");
             }
             return test;
         }
 
-        bool AreEqual(vec4 expected, vec4 actual)
+        bool AreEqual(vec4 expected, vec4 actual, string errorMsg = "")
         {
             bool test = expected.x == actual.x
                 && expected.y == actual.y
@@ -117,7 +135,8 @@ namespace Test
             if (!test)
             {
                 g_AssertsFailed += 1;
-                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
+                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual) + ". " + errorMsg);
+                throw("");
             }
             return test;
         }

@@ -63,6 +63,70 @@ namespace Serialization
             return m_serializer.WriteToBinary(m_settingsFromPlugin, m_plugin.Name, result);
         }
 
+        bool ApplyBinaryToSettings()
+        {
+            bool success = true;
+
+            if (m_settingsFromBinary.GetKeys().Length <= 0)
+            {
+                error("Unable to apply settings, binary deserialized data is empty.");
+                success = false;
+                return success;
+            }
+
+            string[]@ keys = m_settingsFromBinary.GetKeys();
+            for (uint i = 0; i < keys.Length; i++)
+            {
+                auto bin = cast<Serialization::SettingsDataItem>(m_settingsFromBinary[keys[i]]);
+                if (m_settingsFromPlugin.Exists(keys[i]))
+                {
+                    auto plg = cast<Meta::PluginSetting>(m_settingsFromPlugin[keys[i]]);
+                    if (plg.Type == bin.m_SettingType)
+                    {
+                        switch (bin.m_SettingType)
+                        {
+                        case Meta::PluginSettingType::Bool:
+                            plg.WriteBool(bin.ReadBool());
+                            break;
+                        case Meta::PluginSettingType::Enum:
+                            plg.WriteEnum(bin.ReadInt());
+                            break;
+                        case Meta::PluginSettingType::Float:
+                            plg.WriteFloat(bin.ReadFloat());
+                            break;
+                        case Meta::PluginSettingType::Int8:
+                            plg.WriteInt8(bin.ReadInt());
+                            break;
+                        case Meta::PluginSettingType::Int16:
+                            plg.WriteInt16(bin.ReadInt());
+                            break;
+                        case Meta::PluginSettingType::Int32:
+                            plg.WriteInt32(bin.ReadInt());
+                            break;
+                        case Meta::PluginSettingType::String:
+                            plg.WriteString(bin.ReadString());
+                            break;
+                        case Meta::PluginSettingType::Vec2:
+                            plg.WriteVec2(bin.ReadVec2());
+                            break;
+                        case Meta::PluginSettingType::Vec3:
+                            plg.WriteVec3(bin.ReadVec3());
+                            break;
+                        case Meta::PluginSettingType::Vec4:
+                            plg.WriteVec4(bin.ReadVec4());
+                            break;
+                        default:
+                            error("Unexpected setting type \"" + tostring(bin.m_SettingType) + "\", aborting");
+                            success = false;
+                            return success;
+                        }
+                    }
+                }
+            }
+
+            return success;
+        }
+
         // TODO: Ability to filter read by setting category
         private void ReadPluginSettings()
         {

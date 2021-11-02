@@ -3,7 +3,7 @@ namespace Test
 {
     void TestMain()
     {
-        Test_PackAllSettings();
+        try { Test_Int8Settings(); } catch { error("Test Failed: " + Verification::g_CurrTestName); }
     }
 }
 #endif
