@@ -1,12 +1,12 @@
 #if UNIT_TEST
 
-[Setting Category="INT8"]
+[Setting category="INT8"]
 int8 Setting_INT8_Test01 = 0;
-[Setting Category="INT8"]
+[Setting category="INT8"]
 int8 Setting_INT8_Test02 = 0;
-[Setting Category="INT8"]
+[Setting category="INT8"]
 int8 Setting_INT8_Test03 = 0;
-[Setting Category="INT8"]
+[Setting category="INT8"]
 int8 Setting_INT8_Test04 = 0;
 
 namespace Test
@@ -21,7 +21,7 @@ namespace Test
         Setting_INT8_Test04 = -12;
 
         auto serial1 = Serialization::SettingsInterface();
-        serial1.SetPlugin(Meta::ExecutingPlugin());
+        serial1.Initialize(Meta::ExecutingPlugin(), {"INT8"});
         string binary;
         Verification::Condition(serial1.WriteCurrentToBinary(binary), "Error writing settings to binary");
 
@@ -31,7 +31,7 @@ namespace Test
         Setting_INT8_Test04 = 0;
 
         auto serial2 = Serialization::SettingsInterface();
-        serial2.SetPlugin(Meta::ExecutingPlugin());
+        serial2.Initialize(Meta::ExecutingPlugin());
         Verification::Condition(serial2.ReadAndValidateBinary(binary), "Error reading binary settings");
 
         Verification::Condition(serial2.ApplyBinaryToSettings(), "Error applying settings from binary");

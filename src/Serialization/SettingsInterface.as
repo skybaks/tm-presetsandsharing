@@ -14,11 +14,12 @@ namespace Serialization
         {
         }
 
-        void SetPlugin(Meta::Plugin@ plugin)
+        void Initialize(Meta::Plugin@ plugin, const string[]@ settingCategories = {})
         {
             @m_plugin = plugin;
-
-            ReadPluginSettings();
+            m_settingsFromPlugin.DeleteAll();
+            m_settingsFromBinary.DeleteAll();
+            ReadPluginSettings(settingCategories);
         }
 
         bool ReadAndValidateBinary(const string&in inputBase64String)
@@ -127,21 +128,16 @@ namespace Serialization
             return success;
         }
 
-        // TODO: Ability to filter read by setting category
-        private void ReadPluginSettings()
+        private void ReadPluginSettings(const string[]@ categories = {})
         {
             m_settingsFromPlugin.DeleteAll();
-
             auto pluginSettings = m_plugin.GetSettings();
             for (uint i = 0; i < pluginSettings.Length; i++)
             {
-                @m_settingsFromPlugin[tostring(Hash16(pluginSettings[i].VarName))] = pluginSettings[i];
-            }
-
-            if (m_settingsFromPlugin.GetSize() != pluginSettings.Length)
-            {
-                // TODO: Handle this case?
-                error("Serialization::SettingsInterface::PopulateHashedDictionary(): Hash not good enough. Duplication detected!");
+                if (categories.IsEmpty() || categories.Find(pluginSettings[i].Category) >= 0)
+                {
+                    @m_settingsFromPlugin[tostring(Hash16(pluginSettings[i].VarName))] = pluginSettings[i];
+                }
             }
         }
     }
