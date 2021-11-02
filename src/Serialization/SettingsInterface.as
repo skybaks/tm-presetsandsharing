@@ -21,8 +21,9 @@ namespace Serialization
             ReadPluginSettings();
         }
 
-        void ReadAndValidateBinary(const string&in inputBase64String)
+        bool ReadAndValidateBinary(const string&in inputBase64String)
         {
+            bool success = true;
             uint8 pluginIdFromBinary;
             bool readSuccess = m_serializer.ReadFromBinary(inputBase64String, pluginIdFromBinary, m_settingsFromBinary);
 
@@ -51,19 +52,18 @@ namespace Serialization
             if (!readSuccess || !pluginIdMatch || !validationSuccess)
             {
                 m_settingsFromBinary.DeleteAll();
+                success = false;
                 error("Issue detected during read and validation. Unable to safely deserialize.");
             }
+            return success;
         }
 
-        void WriteCurrentToBinary()
+        bool WriteCurrentToBinary(string&out result)
         {
-            string result = "";
-            bool success = m_serializer.WriteToBinary(m_settingsFromPlugin, m_plugin.Name, result);
-
-            // TODO: Do something with the result?
-            print(result);
+            return m_serializer.WriteToBinary(m_settingsFromPlugin, m_plugin.Name, result);
         }
 
+        // TODO: Ability to filter read by setting category
         private void ReadPluginSettings()
         {
             m_settingsFromPlugin.DeleteAll();

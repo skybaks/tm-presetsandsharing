@@ -3,6 +3,7 @@ namespace Test
 {
     void TestMain()
     {
+        Test_PackAllSettings();
     }
 }
 #endif

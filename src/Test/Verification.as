@@ -5,6 +5,27 @@ namespace Test
     namespace Verification
     {
         uint g_AssertsFailed = 0;
+        string g_CurrTestName = "";
+
+        void TestBegin(const string&in testName)
+        {
+            g_AssertsFailed = 0;
+            g_CurrTestName = testName;
+        }
+
+        void TestEnd()
+        {
+            if (g_AssertsFailed > 0)
+            {
+                error("Test Failed: " + g_CurrTestName);
+            }
+            else
+            {
+                print("\\$0f0Test Passed: " + g_CurrTestName);
+            }
+            g_AssertsFailed = 0;
+            g_CurrTestName = "";
+        }
 
         bool AreEqual(bool expected, bool actual)
         {
@@ -12,7 +33,7 @@ namespace Test
             if (!test)
             {
                 g_AssertsFailed += 1;
-                error("AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
+                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
             }
             return test;
         }
@@ -23,7 +44,7 @@ namespace Test
             if (!test)
             {
                 g_AssertsFailed += 1;
-                error("AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
+                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
             }
             return test;
         }
@@ -34,7 +55,7 @@ namespace Test
             if (!test)
             {
                 g_AssertsFailed += 1;
-                error("AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
+                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
             }
             return test;
         }
@@ -46,7 +67,7 @@ namespace Test
             if (!test)
             {
                 g_AssertsFailed += 1;
-                error("AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
+                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
             }
             return test;
         }
@@ -57,7 +78,7 @@ namespace Test
             if (!test)
             {
                 g_AssertsFailed += 1;
-                error("AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
+                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
             }
             return test;
         }
@@ -69,7 +90,7 @@ namespace Test
             if (!test)
             {
                 g_AssertsFailed += 1;
-                error("AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
+                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
             }
             return test;
         }
@@ -82,7 +103,7 @@ namespace Test
             if (!test)
             {
                 g_AssertsFailed += 1;
-                error("AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
+                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
             }
             return test;
         }
@@ -96,7 +117,7 @@ namespace Test
             if (!test)
             {
                 g_AssertsFailed += 1;
-                error("AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
+                error(g_CurrTestName + ": AreEqual Failed! Expected: " + tostring(expected) + " Actual: " + tostring(actual));
             }
             return test;
         }
