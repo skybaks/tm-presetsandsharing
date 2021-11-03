@@ -22,6 +22,15 @@ enum TestEnum04 { VALUE_01, VALUE_02, VALUE_03, VALUE_04, VALUE_05 }
 [Setting category="ENUM"]
 TestEnum04 Setting_ENUM_Test04 = TestEnum04::VALUE_01;
 
+[Setting category="FLOAT"]
+float Setting_FLOAT_Test01 = 0.0;
+[Setting category="FLOAT"]
+float Setting_FLOAT_Test02 = 0.0;
+[Setting category="FLOAT"]
+float Setting_FLOAT_Test03 = 0.0;
+[Setting category="FLOAT"]
+float Setting_FLOAT_Test04 = 0.0;
+
 [Setting category="INT8"]
 int8 Setting_INT8_Test01 = 0;
 [Setting category="INT8"]
@@ -91,6 +100,37 @@ namespace Test
         Verification::AreEqual(TestEnum02::VALUE_09, Setting_ENUM_Test02, "Unexpected value in Setting_ENUM_Test02");
         Verification::AreEqual(TestEnum03::VALUE_07, Setting_ENUM_Test03, "Unexpected value in Setting_ENUM_Test03");
         Verification::AreEqual(TestEnum04::VALUE_04, Setting_ENUM_Test04, "Unexpected value in Setting_ENUM_Test04");
+
+        Verification::TestEnd();
+    }
+
+    void Test_FloatSettings()
+    {
+        Verification::TestBegin("Test_FloatSettings");
+
+        Setting_FLOAT_Test01 = 5564.2;
+        Setting_FLOAT_Test02 = -0.659;
+        Setting_FLOAT_Test03 = 0.0;
+        Setting_FLOAT_Test04 = 9975543585.0;
+
+        auto serial1 = Serialization::SettingsInterface();
+        serial1.Initialize(Meta::ExecutingPlugin(), {"FLOAT"});
+        string binary;
+        Verification::Condition(serial1.WriteCurrentToBinary(binary), "Error writing settings to binary");
+
+        Setting_FLOAT_Test01 = 0.0;
+        Setting_FLOAT_Test02 = 0.0;
+        Setting_FLOAT_Test03 = 0.0;
+        Setting_FLOAT_Test04 = 0.0;
+
+        serial1.Initialize(Meta::ExecutingPlugin());
+        Verification::Condition(serial1.ReadAndValidateBinary(binary), "Error reading binary settings");
+        Verification::Condition(serial1.ApplyBinaryToSettings(), "Error applying settings from binary");
+
+        Verification::AreEqual(0.0, 5564.2 - Setting_FLOAT_Test01, 0.001, "Unexpected value in Setting_FLOAT_Test01");
+        Verification::AreEqual(0.0, -0.659 - Setting_FLOAT_Test02, 0.001, "Unexpected value in Setting_FLOAT_Test02");
+        Verification::AreEqual(0.0, 0.0 - Setting_FLOAT_Test03, 0.001, "Unexpected value in Setting_FLOAT_Test03");
+        Verification::AreEqual(0.0, 9975543585.0 - Setting_FLOAT_Test04, 0.001, "Unexpected value in Setting_FLOAT_Test04");
 
         Verification::TestEnd();
     }

@@ -74,10 +74,9 @@ namespace Test
             return test;
         }
 
-        bool AreEqual(float expected, float actual, string errorMsg = "")
+        bool AreEqual(float expected, float actual, float tolerance, string errorMsg = "")
         {
-            // TODO: Allow a precision tolerance?
-            bool test = expected == actual;
+            bool test = Math::Abs(expected - actual) <= tolerance;
             if (!test)
             {
                 g_AssertsFailed += 1;

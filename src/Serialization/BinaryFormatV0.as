@@ -14,9 +14,9 @@ namespace Serialization
         enum FloatByteCount
         {
             Zero = 0x00,
-            One = 0x01,
-            Two = 0x02,
-            Four = 0x03
+            Packed_One = 0x01,
+            Packed_Two = 0x02,
+            Unpacked_Four = 0x03
         }
 
         enum FloatResolution
@@ -34,7 +34,7 @@ namespace Serialization
             resultResolution = FloatResolution::Ones;
             float resolutionValue = 1.0f;
             // TODO: Need to worry about scientific notation? Test for it.
-            string[]@ matchResult = Regex::Match(tostring(inputValue), "\\d+\\.(\\d+)");
+            string[]@ matchResult = Regex::Match(tostring(inputValue - Math::Floor(inputValue)), "-?\\d+\\.(\\d+)");
             if (matchResult.Length > 1)
             {
                 if (matchResult[1].Length == 1)
@@ -60,25 +60,20 @@ namespace Serialization
                 resultByteCount = FloatByteCount::Zero;
                 success = true;
             }
-            else if (Math::Abs(inputValue) < CalculateMsbValue(resultResolution, FloatByteCount::One))
+            else if (Math::Abs(inputValue) < CalculateMsbValue(resolutionValue, FloatByteCount::Packed_One))
             {
-                resultByteCount = FloatByteCount::One;
+                resultByteCount = FloatByteCount::Packed_One;
                 success = true;
             }
-            else if (Math::Abs(inputValue) < CalculateMsbValue(resultResolution, FloatByteCount::Two))
+            else if (Math::Abs(inputValue) < CalculateMsbValue(resolutionValue, FloatByteCount::Packed_Two))
             {
-                resultByteCount = FloatByteCount::Two;
-                success = true;
-            }
-            else if (Math::Abs(inputValue) < CalculateMsbValue(resultResolution, FloatByteCount::Four))
-            {
-                resultByteCount = FloatByteCount::Four;
+                resultByteCount = FloatByteCount::Packed_Two;
                 success = true;
             }
             else
             {
-                // TODO: Handle this error by expanding to more bytes?
-                error("ERROR: Unable to fit float setting value \"" + tostring(inputValue) + "\" within existing binary format.");
+                resultByteCount = FloatByteCount::Unpacked_Four;
+                success = true;
             }
 
             if (success)
@@ -93,42 +88,22 @@ namespace Serialization
             return success;
         }
 
-        float CalculateMsbValue(const FloatResolution&in resolution, const FloatByteCount&in numBytes)
+        float CalculateMsbValue(const float&in resoValue, const FloatByteCount&in numBytes)
         {
-            float resoValue = 0.0f;
-            switch (resolution)
-            {
-            case FloatResolution::Thousanths:
-                resoValue = 0.001f;
-                break;
-            case FloatResolution::Hundredths:
-                resoValue = 0.01f;
-                break;
-            case FloatResolution::Tenths:
-                resoValue = 0.1f;
-                break;
-            case FloatResolution::Ones:
-            default:
-                resoValue = 1.0f;
-                break;
-            }
-            int numberOfBits = 0;
+            int numberOfBits = 1;
             switch (numBytes)
             {
-            case FloatByteCount::One:
+            case FloatByteCount::Packed_One:
                 numberOfBits = 8;
                 break;
-            case FloatByteCount::Two:
+            case FloatByteCount::Packed_Two:
                 numberOfBits = 16;
                 break;
-            case FloatByteCount::Four:
-                numberOfBits = 32;
-                break;
             default:
-                numberOfBits = 1;
                 break;
             }
-            return resoValue * float(2 ** (numberOfBits - 1));
+            float msbValue = resoValue * Math::Pow(2, numberOfBits - 1);
+            return msbValue;
         }
     }
 }

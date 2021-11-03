@@ -248,11 +248,12 @@ namespace Serialization
                     Serialization::BinaryFormatV0::FloatByteCount byteCount;
                     Serialization::BinaryFormatV0::FloatResolution resolution;
                     int64 packedValue;
-                    bool determinedFloatPacking = BinaryFormatV0::DetermineFloatPacking(pluginSetting.ReadFloat(), byteCount, resolution, packedValue);
+                    float unpackedValue = pluginSetting.ReadFloat();
+                    bool determinedFloatPacking = BinaryFormatV0::DetermineFloatPacking(unpackedValue, byteCount, resolution, packedValue);
                     if (determinedFloatPacking)
                     {
                         m_buffer.Write(uint8((settingType << 4) | ((0x03 & byteCount) << 2) | (0x03 & resolution)));
-                        WritePackedFloat(byteCount, packedValue);
+                        WritePackedFloat(byteCount, packedValue, unpackedValue);
                     }
                     else
                     {
@@ -289,8 +290,8 @@ namespace Serialization
                         m_buffer.Write(uint8((settingType << 4) | ((0x03 & byteCountX) << 2) | (0x03 & resolutionX)));
                         m_buffer.Write(uint8(((0x03 & byteCountY) << 6) | ((0x03 & resolutionY) << 4) | (0x0F & 0x00)));
 
-                        WritePackedFloat(byteCountX, packedValueX);
-                        WritePackedFloat(byteCountY, packedValueY);
+                        WritePackedFloat(byteCountX, packedValueX, value.x);
+                        WritePackedFloat(byteCountY, packedValueY, value.y);
                     }
                     else
                     {
@@ -318,9 +319,9 @@ namespace Serialization
                         m_buffer.Write(uint8((settingType << 4) | ((0x03 & byteCountX) << 2) | (0x03 & resolutionX)));
                         m_buffer.Write(uint8(((0x03 & byteCountY) << 6) | ((0x03 & resolutionY) << 4) | ((0x03 & byteCountZ) << 2) | (0x03 & resolutionZ)));
 
-                        WritePackedFloat(byteCountX, packedValueX);
-                        WritePackedFloat(byteCountY, packedValueY);
-                        WritePackedFloat(byteCountZ, packedValueZ);
+                        WritePackedFloat(byteCountX, packedValueX, value.x);
+                        WritePackedFloat(byteCountY, packedValueY, value.y);
+                        WritePackedFloat(byteCountZ, packedValueZ, value.z);
                     }
                     else
                     {
@@ -353,10 +354,10 @@ namespace Serialization
                         m_buffer.Write(uint8(((0x03 & byteCountY) << 6) | ((0x03 & resolutionY) << 4) | ((0x03 & byteCountZ) << 2) | (0x03 & resolutionZ)));
                         m_buffer.Write(uint8(((0x03 & byteCountW) << 6) | ((0x03 & resolutionW) << 4) | (0x0F & 0x00)));
 
-                        WritePackedFloat(byteCountX, packedValueX);
-                        WritePackedFloat(byteCountY, packedValueY);
-                        WritePackedFloat(byteCountZ, packedValueZ);
-                        WritePackedFloat(byteCountW, packedValueW);
+                        WritePackedFloat(byteCountX, packedValueX, value.x);
+                        WritePackedFloat(byteCountY, packedValueY, value.y);
+                        WritePackedFloat(byteCountZ, packedValueZ, value.z);
+                        WritePackedFloat(byteCountW, packedValueW, value.w);
                     }
                     else
                     {
@@ -381,23 +382,23 @@ namespace Serialization
             return success;
         }
 
-        private void WritePackedFloat(const Serialization::BinaryFormatV0::FloatByteCount&in byteCount, const int64&in packedValue)
+        private void WritePackedFloat(const Serialization::BinaryFormatV0::FloatByteCount&in byteCount, const int64&in packedValue, const float&in unpackedValue)
         {
             if (byteCount == BinaryFormatV0::FloatByteCount::Zero)
             {
                 // Do nothing. Special case to reduce total packed length.
             }
-            else if (byteCount == BinaryFormatV0::FloatByteCount::One)
+            else if (byteCount == BinaryFormatV0::FloatByteCount::Packed_One)
             {
                 m_buffer.Write(int8(packedValue));
             }
-            else if (byteCount == BinaryFormatV0::FloatByteCount::Two)
+            else if (byteCount == BinaryFormatV0::FloatByteCount::Packed_Two)
             {
                 m_buffer.Write(int16(packedValue));
             }
-            else /*if (byteCount == BinaryFormatV0::FloatByteCount::Four)*/
+            else /*if (byteCount == BinaryFormatV0::FloatByteCount::Unpacked_Four)*/
             {
-                m_buffer.Write(int(packedValue));
+                m_buffer.Write(float(unpackedValue));
             }
         }
 
@@ -410,17 +411,18 @@ namespace Serialization
             {
                 packedValue = 0;
             }
-            else if (byteCount == BinaryFormatV0::FloatByteCount::One)
+            else if (byteCount == BinaryFormatV0::FloatByteCount::Packed_One)
             {
                 packedValue = m_buffer.ReadInt8();
             }
-            else if (byteCount == BinaryFormatV0::FloatByteCount::Two)
+            else if (byteCount == BinaryFormatV0::FloatByteCount::Packed_Two)
             {
                 packedValue = m_buffer.ReadInt16();
             }
-            else /* Four Bytes */
+            else /* Four Bytes Unpacked */
             {
-                packedValue = m_buffer.ReadInt32();
+                result = tostring(m_buffer.ReadFloat());
+                return result;
             }
 
             if (resolution == BinaryFormatV0::FloatResolution::Thousanths)
