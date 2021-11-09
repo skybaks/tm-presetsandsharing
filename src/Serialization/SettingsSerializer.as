@@ -262,16 +262,18 @@ namespace Serialization
                 }
                 else if (pluginSetting.Type == Meta::PluginSettingType::String)
                 {
-                    uint64 stringLengthTotal = pluginSetting.ReadString().Length;
-                    uint stringLengthPart1 = Math::Min(15, stringLengthTotal);
+                    string settingValue = pluginSetting.ReadString();
                     // TODO: Need to handle situation where string is longer than this?
+                    uint64 stringLengthTotal = Math::Min(Serialization::UINT8_MAX + 15, settingValue.Length);
+                    settingValue = settingValue.SubStr(0, stringLengthTotal);
+                    uint stringLengthPart1 = Math::Min(15, stringLengthTotal);
                     uint stringLengthPart2 = Math::Max(0, stringLengthTotal - stringLengthPart1);
                     m_buffer.Write(uint8((settingType << 4) | (0x0F & stringLengthPart1)));
                     if (stringLengthPart2 > 0)
                     {
                         m_buffer.Write(uint8(stringLengthPart2));
                     }
-                    m_buffer.Write(pluginSetting.ReadString());
+                    m_buffer.Write(settingValue);
                 }
                 else if (pluginSetting.Type == Meta::PluginSettingType::Vec2)
                 {

@@ -40,6 +40,33 @@ int8 Setting_INT8_Test03 = 0;
 [Setting category="INT8"]
 int8 Setting_INT8_Test04 = 0;
 
+[Setting category="INT16"]
+int16 Setting_INT16_Test01 = 0;
+[Setting category="INT16"]
+int16 Setting_INT16_Test02 = 0;
+[Setting category="INT16"]
+int16 Setting_INT16_Test03 = 0;
+[Setting category="INT16"]
+int16 Setting_INT16_Test04 = 0;
+
+[Setting category="INT32"]
+int Setting_INT32_Test01 = 0;
+[Setting category="INT32"]
+int Setting_INT32_Test02 = 0;
+[Setting category="INT32"]
+int Setting_INT32_Test03 = 0;
+[Setting category="INT32"]
+int Setting_INT32_Test04 = 0;
+
+[Setting category="STRING"]
+string Setting_STRING_Test01 = "";
+[Setting category="STRING"]
+string Setting_STRING_Test02 = "";
+[Setting category="STRING"]
+string Setting_STRING_Test03 = "";
+[Setting category="STRING"]
+string Setting_STRING_Test04 = "";
+
 namespace Test
 {
     void Test_BoolSettings()
@@ -111,7 +138,7 @@ namespace Test
         Setting_FLOAT_Test01 = 5564.2;
         Setting_FLOAT_Test02 = -0.659;
         Setting_FLOAT_Test03 = 0.0;
-        Setting_FLOAT_Test04 = 9975543585.0;
+        Setting_FLOAT_Test04 = 9147480000.0;
 
         auto serial1 = Serialization::SettingsInterface();
         serial1.Initialize(Meta::ExecutingPlugin(), {"FLOAT"});
@@ -130,7 +157,7 @@ namespace Test
         Verification::AreEqual(0.0, 5564.2 - Setting_FLOAT_Test01, 0.001, "Unexpected value in Setting_FLOAT_Test01");
         Verification::AreEqual(0.0, -0.659 - Setting_FLOAT_Test02, 0.001, "Unexpected value in Setting_FLOAT_Test02");
         Verification::AreEqual(0.0, 0.0 - Setting_FLOAT_Test03, 0.001, "Unexpected value in Setting_FLOAT_Test03");
-        Verification::AreEqual(0.0, 9975543585.0 - Setting_FLOAT_Test04, 0.001, "Unexpected value in Setting_FLOAT_Test04");
+        Verification::AreEqual(9147480000.0, Setting_FLOAT_Test04, 0.001, "Unexpected value in Setting_FLOAT_Test04");
 
         Verification::TestEnd();
     }
@@ -163,6 +190,99 @@ namespace Test
         Verification::AreEqual(Serialization::INT8_MIN, Setting_INT8_Test02, "Unexpected value in Setting_INT8_Test02");
         Verification::AreEqual(0, Setting_INT8_Test03, "Unexpected value in Setting_INT8_Test03");
         Verification::AreEqual(-12, Setting_INT8_Test04, "Unexpected value in Setting_INT8_Test04");
+
+        Verification::TestEnd();
+    }
+
+    void Test_Int16Settings()
+    {
+        Verification::TestBegin("Test_Int16Settings");
+
+        Setting_INT16_Test01 = Serialization::INT8_MAX;
+        Setting_INT16_Test02 = Serialization::INT16_MIN;
+        Setting_INT16_Test03 = 0;
+        Setting_INT16_Test04 = -136;
+
+        auto serial = Serialization::SettingsInterface();
+        serial.Initialize(Meta::ExecutingPlugin(), {"INT16"});
+        string binary;
+        Verification::Condition(serial.WriteCurrentToBinary(binary), "Error writing settings to binary");
+
+        Setting_INT16_Test01 = -1;
+        Setting_INT16_Test02 = -1;
+        Setting_INT16_Test03 = -1;
+        Setting_INT16_Test04 = -1;
+
+        serial.Initialize(Meta::ExecutingPlugin());
+        Verification::Condition(serial.ReadAndValidateBinary(binary), "Error reading binary settings");
+        Verification::Condition(serial.ApplyBinaryToSettings(), "Error applying settings from binary");
+
+        Verification::AreEqual(Serialization::INT8_MAX, Setting_INT16_Test01, "Unexpected value in Setting_INT16_Test01");
+        Verification::AreEqual(Serialization::INT16_MIN, Setting_INT16_Test02, "Unexpected value in Setting_INT16_Test02");
+        Verification::AreEqual(0, Setting_INT16_Test03, "Unexpected value in Setting_INT16_Test03");
+        Verification::AreEqual(-136, Setting_INT16_Test04, "Unexpected value in Setting_INT16_Test04");
+
+        Verification::TestEnd();
+    }
+
+    void Test_Int32Settings()
+    {
+        Verification::TestBegin("Test_Int32Settings");
+
+        Setting_INT32_Test01 = Serialization::INT16_MAX;
+        Setting_INT32_Test02 = Serialization::INT32_MIN;
+        Setting_INT32_Test03 = 0;
+        Setting_INT32_Test04 = -26978;
+
+        auto serial = Serialization::SettingsInterface();
+        serial.Initialize(Meta::ExecutingPlugin(), {"INT32"});
+        string binary;
+        Verification::Condition(serial.WriteCurrentToBinary(binary), "Error writing settings to binary");
+
+        Setting_INT32_Test01 = -1;
+        Setting_INT32_Test02 = -1;
+        Setting_INT32_Test03 = -1;
+        Setting_INT32_Test04 = -1;
+
+        serial.Initialize(Meta::ExecutingPlugin());
+        Verification::Condition(serial.ReadAndValidateBinary(binary), "Error reading binary settings");
+        Verification::Condition(serial.ApplyBinaryToSettings(), "Error applying settings from binary");
+
+        Verification::AreEqual(Serialization::INT16_MAX, Setting_INT32_Test01, "Unexpected value in Setting_INT32_Test01");
+        Verification::AreEqual(Serialization::INT32_MIN, Setting_INT32_Test02, "Unexpected value in Setting_INT32_Test02");
+        Verification::AreEqual(0, Setting_INT32_Test03, "Unexpected value in Setting_INT32_Test03");
+        Verification::AreEqual(-26978, Setting_INT32_Test04, "Unexpected value in Setting_INT32_Test04");
+
+        Verification::TestEnd();
+    }
+
+    void Test_StringSettings()
+    {
+        Verification::TestBegin("Test_StringSettings");
+
+        Setting_STRING_Test01 = "Shor\t\nString";
+        Setting_STRING_Test02 = "LongerStringThanSingleLimit";
+        Setting_STRING_Test03 = "ThisSentenceIsThirtyNineCharactersLong.ThisSentenceIsThirtyNineCharactersLong.ThisSentenceIsThirtyNineCharactersLong.ThisSentenceIsThirtyNineCharactersLong.ThisSentenceIsThirtyNineCharactersLong.ThisSentenceIsThirtyNineCharactersLong.ThisSentenceIsThirtyNineCharactersLong.ThisSentenceIsThirtyNineCharactersLong.";
+        Setting_STRING_Test04 = "";
+
+        auto serial = Serialization::SettingsInterface();
+        serial.Initialize(Meta::ExecutingPlugin(), {"STRING"});
+        string binary;
+        Verification::Condition(serial.WriteCurrentToBinary(binary), "Error writing settings to binary");
+
+        Setting_STRING_Test01 = "";
+        Setting_STRING_Test02 = "";
+        Setting_STRING_Test03 = "";
+        Setting_STRING_Test04 = "";
+
+        serial.Initialize(Meta::ExecutingPlugin());
+        Verification::Condition(serial.ReadAndValidateBinary(binary), "Error reading binary settings");
+        Verification::Condition(serial.ApplyBinaryToSettings(), "Error applying settings from binary");
+
+        Verification::AreEqual("Shor\t\nString", Setting_STRING_Test01, "Unexpected value in Setting_STRING_Test01");
+        Verification::AreEqual("LongerStringThanSingleLimit", Setting_STRING_Test02, "Unexpected value in Setting_STRING_Test02");
+        Verification::AreEqual("ThisSentenceIsThirtyNineCharactersLong.ThisSentenceIsThirtyNineCharactersLong.ThisSentenceIsThirtyNineCharactersLong.ThisSentenceIsThirtyNineCharactersLong.ThisSentenceIsThirtyNineCharactersLong.ThisSentenceIsThirtyNineCharactersLong.ThisSentenceIsThirtyNineCharactersLo", Setting_STRING_Test03, "Unexpected value in Setting_STRING_Test03");
+        Verification::AreEqual("", Setting_STRING_Test04, "Unexpected value in Setting_STRING_Test04");
 
         Verification::TestEnd();
     }

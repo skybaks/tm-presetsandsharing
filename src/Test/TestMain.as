@@ -8,6 +8,9 @@ namespace Test
         try { Test_EnumSettings(); } catch { error("Test Failed: " + Verification::g_CurrTestName); }
         try { Test_FloatSettings(); } catch { error("Test Failed: " + Verification::g_CurrTestName); }
         try { Test_Int8Settings(); } catch { error("Test Failed: " + Verification::g_CurrTestName); }
+        try { Test_Int16Settings(); } catch { error("Test Failed: " + Verification::g_CurrTestName); }
+        try { Test_Int32Settings(); } catch { error("Test Failed: " + Verification::g_CurrTestName); }
+        try { Test_StringSettings(); } catch { error("Test Failed: " + Verification::g_CurrTestName); }
     }
 }
 #endif
