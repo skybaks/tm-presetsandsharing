@@ -1,11 +1,15 @@
-#define UNIT_TEST
+
+void RenderMenu()
+{
+    View::RenderPresetsMenu();
+}
 
 void Main()
 {
-#if UNIT_TEST
-    Test::TestMain();
-#else
+//#define UNIT_TEST
+#if !UNIT_TEST
     // TODO: todo
-    print("TODO: todo");
+#else
+    Test::TestMain();
 #endif
 }
