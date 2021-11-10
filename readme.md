@@ -1,6 +1,6 @@
 # Presets and Sharing
 
-A plugin for Openplanet in Trackmania.
+A plugin for Openplanet in Trackmania. Making use of the plugin setting Meta API, this plugin provides a method to serialize and deserialize groups of settings for any Openplanet plugin which is loaded by the user.
 
 ## Packed Definition
 
@@ -108,8 +108,6 @@ A plugin for Openplanet in Trackmania.
 The following steps are taken to verify the integrity of serialized settings before applying them to a plugin:
 
 * The serialized hash of the plugin ID is compared against the target plugin
-* The number of settings saved is compared against the current number of settings
-    * If there is a mismatch in these settings count, the serialization *may* still proceed
-* Each setting is then read from the file until the end is reached
-* An attempt is made to uniquely correlate the variable name hash and type to an associated setting in the target plugin
-    * If this correlation reaches a defined level of confidence, the settings are applied to the plugin
+* A one byte checksum is included at the end of the data. This is computed against the entirety of the packed data and must be satisfied in order to allow unpacking.
+* Both the variable name hash and variable type must match the target plugin in order to be a valid correlation
+
