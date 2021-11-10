@@ -66,7 +66,7 @@ namespace Serialization
             string[]@ splitValue = m_ValueStringified.Split(";");
             if (splitValue.Length == 4)
             {
-                return vec4(Text::ParseFloat(splitValue[0]), Text::ParseFloat(splitValue[1]), Text::ParseFloat(splitValue[2]), Text::ParseFloat(splitValue[2]));
+                return vec4(Text::ParseFloat(splitValue[0]), Text::ParseFloat(splitValue[1]), Text::ParseFloat(splitValue[2]), Text::ParseFloat(splitValue[3]));
             }
             else
             {

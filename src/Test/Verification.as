@@ -98,10 +98,10 @@ namespace Test
             return test;
         }
 
-        bool AreEqual(vec2 expected, vec2 actual, string errorMsg = "")
+        bool AreEqual(vec2 expected, vec2 actual, float tolerance, string errorMsg = "")
         {
-            bool test = expected.x == actual.x
-                && expected.y == actual.y;
+            bool test = Math::Abs(expected.x - actual.x) <= tolerance
+                && Math::Abs(expected.y - actual.y) <= tolerance;
             if (!test)
             {
                 g_AssertsFailed += 1;
@@ -111,11 +111,11 @@ namespace Test
             return test;
         }
 
-        bool AreEqual(vec3 expected, vec3 actual, string errorMsg = "")
+        bool AreEqual(vec3 expected, vec3 actual, float tolerance, string errorMsg = "")
         {
-            bool test = expected.x == actual.x
-                && expected.y == actual.y
-                && expected.z == actual.z;
+            bool test = Math::Abs(expected.x - actual.x) <= tolerance
+                && Math::Abs(expected.y - actual.y) <= tolerance
+                && Math::Abs(expected.z - actual.z) <= tolerance;
             if (!test)
             {
                 g_AssertsFailed += 1;
@@ -125,12 +125,12 @@ namespace Test
             return test;
         }
 
-        bool AreEqual(vec4 expected, vec4 actual, string errorMsg = "")
+        bool AreEqual(vec4 expected, vec4 actual, float tolerance, string errorMsg = "")
         {
-            bool test = expected.x == actual.x
-                && expected.y == actual.y
-                && expected.z == actual.z
-                && expected.w == actual.w;
+            bool test = Math::Abs(expected.x - actual.x) <= tolerance
+                && Math::Abs(expected.y - actual.y) <= tolerance
+                && Math::Abs(expected.z - actual.z) <= tolerance
+                && Math::Abs(expected.w - actual.w) <= tolerance;
             if (!test)
             {
                 g_AssertsFailed += 1;

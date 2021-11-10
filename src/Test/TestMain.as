@@ -11,6 +11,9 @@ namespace Test
         try { Test_Int16Settings(); } catch { error("Test Failed: " + Verification::g_CurrTestName); }
         try { Test_Int32Settings(); } catch { error("Test Failed: " + Verification::g_CurrTestName); }
         try { Test_StringSettings(); } catch { error("Test Failed: " + Verification::g_CurrTestName); }
+        try { Test_Vec2Settings(); } catch { error("Test Failed: " + Verification::g_CurrTestName); }
+        try { Test_Vec3Settings(); } catch { error("Test Failed: " + Verification::g_CurrTestName); }
+        try { Test_Vec4Settings(); } catch { error("Test Failed: " + Verification::g_CurrTestName); }
     }
 }
 #endif
