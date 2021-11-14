@@ -26,6 +26,10 @@ namespace View
                 }
                 UI::EndMenu();
             }
+            if (UI::MenuItem(Icons::Cog + " Manage Presets"))
+            {
+                g_mainWindowVisible = true;
+            }
             UI::EndMenu();
         }
     }

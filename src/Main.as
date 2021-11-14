@@ -1,12 +1,19 @@
 
+Manage::MainData g_data;
+
 void RenderMenu()
 {
     View::RenderPresetsMenu();
 }
 
+void RenderInterface()
+{
+    View::RenderInterfaceMainWindow();
+}
+
+//#define UNIT_TEST
 void Main()
 {
-//#define UNIT_TEST
 #if !UNIT_TEST
     // TODO: todo
 #else
