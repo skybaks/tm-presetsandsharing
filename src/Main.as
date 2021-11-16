@@ -1,14 +1,14 @@
 
-Manage::MainData g_data;
+Interface::ManagePresets m_interface;
 
 void RenderMenu()
 {
-    View::RenderPresetsMenu();
+    m_interface.RenderMenu();
 }
 
 void RenderInterface()
 {
-    View::RenderInterfaceMainWindow();
+    m_interface.RenderWindow();
 }
 
 //#define UNIT_TEST
