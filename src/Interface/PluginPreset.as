@@ -12,10 +12,10 @@ namespace Interface
 
         string Binary { get const { return m_binary; } set { m_binary = value; } }
         string Name { get { return m_name; } set { m_name = value; } }
+        string PluginID { get { return m_plugin !is null ? m_plugin.ID : ""; } }
 
-        PluginPreset(const string&in pluginId)
+        PluginPreset()
         {
-            SetPlugin(pluginId);
         }
 
         void SetPlugin(const string&in pluginId)
