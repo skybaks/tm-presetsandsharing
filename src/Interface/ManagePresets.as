@@ -10,6 +10,7 @@ namespace Interface
         private PluginPreset@[] m_presets;
         private string m_selectedPluginId = "";
         private PluginPreset@ m_workingPreset = null;
+        private bool m_jumpToTabEdit = false;
 
         private string SelectedPluginId
         {
@@ -22,7 +23,14 @@ namespace Interface
                 if (value != m_selectedPluginId)
                 {
                     m_selectedPluginId = value;
-                    @m_workingPreset = PluginPreset(m_selectedPluginId);
+                    if (m_workingPreset !is null)
+                    {
+                        m_workingPreset.SetPlugin(m_selectedPluginId);
+                    }
+                    else
+                    {
+                        @m_workingPreset = PluginPreset(m_selectedPluginId);
+                    }
                 }
             }
         }
@@ -38,14 +46,15 @@ namespace Interface
                 UI::Begin(m_windowName, m_windowVisible);
 
                 UI::BeginTabBar("##OverallTabBar.ManagePresets.RenderWindow");
-                if (UI::BeginTabItem("Preset"))
+                if (UI::BeginTabItem("Presets"))
                 {
                     RenderPresetTab();
                     UI::EndTabItem();
                 }
-                if (UI::BeginTabItem("Sharing"))
+                if (UI::BeginTabItem("Edit", m_jumpToTabEdit ? UI::TabItemFlags::SetSelected : UI::TabItemFlags::None))
                 {
-                    RenderSharingTab();
+                    m_jumpToTabEdit = false;
+                    RenderPresetEditTab();
                     UI::EndTabItem();
                 }
                 UI::EndTabBar();
@@ -85,6 +94,37 @@ namespace Interface
 
         private void RenderPresetTab()
         {
+            if (UI::BeginTable("PresetsTabTable", 3 /* col */))
+            {
+                UI::TableSetupColumn("Preset", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
+                UI::TableSetupColumn("Edit", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
+                UI::TableSetupColumn("Delete", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
+
+                for (uint i = 0; i < m_presets.Length; i++)
+                {
+                    UI::TableNextColumn();
+                    UI::Text(m_presets[i].Name);
+
+                    UI::TableNextColumn();
+                    if (UI::Button(Icons::PencilSquareO))
+                    {
+                        @m_workingPreset = m_presets[i];
+                        m_jumpToTabEdit = true;
+                    }
+
+                    UI::TableNextColumn();
+                    if (UI::Button(Icons::Trash))
+                    {
+                    }
+
+                    UI::TableNextRow();
+                }
+                UI::EndTable();
+            }
+        }
+
+        private void RenderPresetEditTab()
+        {
             auto plugins = Meta::AllPlugins();
             if (UI::BeginCombo("Plugin##ManagePresets.RenderWindow", SelectedPluginId))
             {
@@ -105,17 +145,6 @@ namespace Interface
             {
                 m_workingPreset.Name = UI::InputText("Preset Name##ManagePresets.RenderWindow", m_workingPreset.Name);
 
-                if (m_workingPreset.Categories.GetSize() > 0)
-                {
-                    UI::Text("Selected Categories:");
-                    auto catKeys = m_workingPreset.Categories.GetKeys();
-                    for (uint i = 0; i < catKeys.Length; i++)
-                    {
-                        bool selected = bool(m_workingPreset.Categories[catKeys[i]]);
-                        selected = UI::Checkbox(catKeys[i] + "##ManagePresets.RenderWindow", selected);
-                        m_workingPreset.Categories[catKeys[i]] = selected;
-                    }
-                }
                 if (UI::Button(Icons::PencilSquare + " Create/Update"))
                 {
                     int searchIndex = m_presets.FindByRef(m_workingPreset);
@@ -126,16 +155,6 @@ namespace Interface
 
                     m_workingPreset.ReadSettings();
                 }
-                UI::SameLine();
-                if (UI::Button(Icons::Trash + " Remove"))
-                {
-                    int searchIndex = m_presets.FindByRef(m_workingPreset);
-                    if (searchIndex >= 0)
-                    {
-                        m_presets.RemoveAt(searchIndex);
-                    }
-                }
-                UI::Text("Serialized:");
                 UI::InputText("##Preset:ManagePresets.RenderWindow", m_workingPreset.Binary, UI::InputTextFlags(UI::InputTextFlags::ReadOnly | UI::InputTextFlags::NoHorizontalScroll));
                 UI::SameLine();
                 if (UI::Button(Icons::FilesO))
@@ -143,10 +162,6 @@ namespace Interface
                     IO::SetClipboard(m_workingPreset.Binary);
                 }
             }
-        }
-
-        private void RenderSharingTab()
-        {
         }
     }
 }

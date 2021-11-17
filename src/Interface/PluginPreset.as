@@ -15,7 +15,12 @@ namespace Interface
 
         PluginPreset(const string&in pluginId)
         {
-            GetPluginObject(pluginId);
+            SetPlugin(pluginId);
+        }
+
+        void SetPlugin(const string&in pluginId)
+        {
+            @m_plugin = Meta::GetPluginFromID(pluginId);
             UpdateSettingCategories();
         }
 
@@ -36,11 +41,6 @@ namespace Interface
         }
 
         // TODO: Read From/Write To Json
-
-        private void GetPluginObject(const string&in pluginId)
-        {
-            @m_plugin = Meta::GetPluginFromID(pluginId);
-        }
 
         private void UpdateSettingCategories()
         {
