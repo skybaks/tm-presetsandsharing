@@ -73,15 +73,13 @@ namespace Interface
 
         private void RenderPresetTab()
         {
-            if (UI::Button(Icons::Plus))
+            if (UI::Button(Icons::Plus + " Create New"))
             {
                 @m_workingPreset = PluginPreset();
                 m_presets.InsertLast(m_workingPreset);
                 m_importBinaryString = "";
                 m_jumpToTabEdit = true;
             }
-            UI::SameLine();
-            UI::Text("Create New");
 
             if (UI::BeginTable("PresetsTabTable", 3 /* col */, UI::TableFlags(UI::TableFlags::NoSavedSettings)))
             {
