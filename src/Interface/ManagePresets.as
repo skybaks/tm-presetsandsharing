@@ -8,29 +8,9 @@ namespace Interface
         private string m_menuName = "\\$9cf" + Icons::Sliders + "\\$fff Presets";
         private string m_windowName = Icons::Sliders + " Manage Presets";
         private PluginPreset@[] m_presets;
-        private string m_selectedPluginId = "";
         private PluginPreset@ m_workingPreset = null;
         private bool m_jumpToTabEdit = false;
         private string m_importBinaryString = "";
-
-        private string SelectedPluginId
-        {
-            get
-            {
-                return m_selectedPluginId;
-            }
-            set
-            {
-                if (value != m_selectedPluginId)
-                {
-                    m_selectedPluginId = value;
-                    if (m_workingPreset !is null)
-                    {
-                        m_workingPreset.SetPlugin(m_selectedPluginId);
-                    }
-                }
-            }
-        }
 
         ManagePresets()
         {
@@ -64,17 +44,19 @@ namespace Interface
         {
             if (UI::BeginMenu(m_menuName))
             {
-                if (m_presets.Length > 0)
+                uint presetsVisible = 0;
+                for (uint i = 0; i < m_presets.Length; i++)
                 {
-                    for (uint i = 0; i < m_presets.Length; i++)
+                    if (m_presets[i].Valid)
                     {
+                        presetsVisible++;
                         if (UI::MenuItem(m_presets[i].Name + "##PresetMenuItem." + tostring(i)))
                         {
                             m_presets[i].ApplySettings();
                         }
                     }
                 }
-                else
+                if (presetsVisible <= 0)
                 {
                     UI::MenuItem("No Presets", enabled: false);
                 }
@@ -94,7 +76,8 @@ namespace Interface
             if (UI::Button(Icons::Plus))
             {
                 @m_workingPreset = PluginPreset();
-                m_selectedPluginId = "";
+                m_presets.InsertLast(m_workingPreset);
+                m_importBinaryString = "";
                 m_jumpToTabEdit = true;
             }
             UI::SameLine();
@@ -109,13 +92,13 @@ namespace Interface
                 for (uint i = 0; i < m_presets.Length; i++)
                 {
                     UI::TableNextColumn();
-                    UI::Text(m_presets[i].Name);
+                    UI::Text(m_presets[i].Name + "\\$aaa - " + m_presets[i].PluginID);
 
                     UI::TableNextColumn();
                     if (UI::Button(Icons::PencilSquareO + "##PresetsTabTable.Edit." + tostring(i)))
                     {
                         @m_workingPreset = m_presets[i];
-                        m_selectedPluginId = m_workingPreset.PluginID;
+                        m_importBinaryString = "";
                         m_jumpToTabEdit = true;
                     }
 
@@ -125,6 +108,7 @@ namespace Interface
                         if (m_presets[i] is m_workingPreset)
                         {
                             @m_workingPreset = null;
+                            m_importBinaryString = "";
                         }
                         m_presets.RemoveAt(i);
                     }
@@ -137,10 +121,10 @@ namespace Interface
 
         private void RenderPresetEditTab()
         {
-            UI::BeginDisabled(SelectedPluginId != "");
+            UI::BeginDisabled(m_workingPreset.PluginID != "");
 
             auto plugins = Meta::AllPlugins();
-            if (UI::BeginCombo("Plugin##ManagePresets.RenderWindow", SelectedPluginId))
+            if (UI::BeginCombo("Plugin##ManagePresets.RenderWindow", m_workingPreset.PluginID))
             {
                 for (uint i = 0; i < plugins.Length; i++)
                 {
@@ -148,7 +132,7 @@ namespace Interface
                     {
                         if (UI::Selectable(plugins[i].ID + "##Plugin.ID." + tostring(i), false))
                         {
-                            SelectedPluginId = plugins[i].ID;
+                            m_workingPreset.PluginID = plugins[i].ID;
                         }
                     }
                 }
@@ -156,42 +140,30 @@ namespace Interface
             }
 
             UI::EndDisabled();
-            UI::BeginDisabled(SelectedPluginId == "");
+            UI::BeginDisabled(m_workingPreset.PluginID == "");
 
             m_workingPreset.Name = UI::InputText("Preset Name##ManagePresets.RenderWindow", m_workingPreset.Name);
 
             if (UI::BeginTable("PresetSavingTable", 2 /* col */, UI::TableFlags(UI::TableFlags::NoSavedSettings)))
             {
-                UI::TableSetupColumn("Save from Existing", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
+                UI::TableSetupColumn("Save Current Settings", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
                 UI::TableSetupColumn("Import from External", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
                 UI::TableHeadersRow();
 
                 UI::TableNextColumn();
-                if (UI::Button(Icons::FilesO))
-                {
-                    IO::SetClipboard(m_workingPreset.Binary);
-                }
-                UI::SameLine();
                 UI::InputText("##Preset:ManagePresets.RenderWindow", m_workingPreset.Binary, UI::InputTextFlags(UI::InputTextFlags::ReadOnly | UI::InputTextFlags::NoHorizontalScroll));
-                if (UI::Button(Icons::FloppyO))
+                if (UI::Button("Update"))
                 {
-                    int searchIndex = m_presets.FindByRef(m_workingPreset);
-                    if (searchIndex < 0)
-                    {
-                        m_presets.InsertLast(m_workingPreset);
-                    }
                     m_workingPreset.ReadSettings();
                 }
 
                 UI::TableNextColumn();
-                // TODO: icon
+                m_importBinaryString = UI::InputText("##Import:ManagePresets.RenderWindow", m_importBinaryString, UI::InputTextFlags(UI::InputTextFlags::NoHorizontalScroll));
                 if (UI::Button("Import") && m_importBinaryString != "")
                 {
                     m_workingPreset.Binary = m_importBinaryString;
                     m_workingPreset.ApplySettings();
                 }
-                UI::SameLine();
-                m_importBinaryString = UI::InputText("##Import:ManagePresets.RenderWindow", m_importBinaryString, UI::InputTextFlags(UI::InputTextFlags::NoHorizontalScroll));
 
                 UI::EndTable();
             }
