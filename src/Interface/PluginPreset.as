@@ -8,8 +8,22 @@ namespace Interface
         private Meta::Plugin@ m_plugin;
         private Serialization::SettingsInterface m_serializer;
 
-        string Binary { get const { return m_binary; } set { m_binary = value; } }
         string Name { get { return m_name; } set { m_name = value; } }
+
+        string Binary
+        {
+            get const
+            {
+                return m_binary;
+            }
+            set
+            {
+                if (m_binary != value && m_serializer.ReadAndValidateBinary(value))
+                {
+                    m_binary = value;
+                }
+            }
+        }
 
         string PluginID
         {
@@ -31,12 +45,17 @@ namespace Interface
         {
             get
             {
-                return m_plugin !is null && Name != "" && Binary != "" && m_serializer.ReadAndValidateBinary(Binary);
+                return m_plugin !is null && Name != "" && Binary != "";
             }
         }
 
         PluginPreset()
         {
+        }
+
+        int opCmp(PluginPreset@ other)
+        {
+            return PluginID.opCmp(other.PluginID);
         }
 
         void ApplySettings()
@@ -54,7 +73,20 @@ namespace Interface
             bool success = m_serializer.WriteCurrentToBinary(Binary);
         }
 
-        // TODO: Read From/Write To Json
+        void Load(Json::Value object)
+        {
+            Name = object["Name"];
+            PluginID = object["PluginID"];
+            Binary = object["Binary"];
+        }
 
+        Json::Value Save()
+        {
+            auto object = Json::Object();
+            object["Name"] = Name;
+            object["PluginID"] = PluginID;
+            object["Binary"] = Binary;
+            return object;
+        }
     }
 }

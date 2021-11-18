@@ -15,7 +15,7 @@ void RenderInterface()
 void Main()
 {
 #if !UNIT_TEST
-    // TODO: todo
+    m_interface.Load();
 #else
     Test::TestMain();
 #endif

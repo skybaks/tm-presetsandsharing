@@ -86,8 +86,9 @@ namespace Interface
             if (UI::BeginTable("PresetsTabTable", 3 /* col */, UI::TableFlags(UI::TableFlags::NoSavedSettings)))
             {
                 UI::TableSetupColumn("Preset", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
-                UI::TableSetupColumn("Edit", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
-                UI::TableSetupColumn("Delete", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
+                UI::TableSetupColumn("##Edit", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
+                UI::TableSetupColumn("##Delete", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
+                UI::TableHeadersRow();
 
                 for (uint i = 0; i < m_presets.Length; i++)
                 {
@@ -111,6 +112,8 @@ namespace Interface
                             m_importBinaryString = "";
                         }
                         m_presets.RemoveAt(i);
+                        m_presets.SortAsc();
+                        Save();
                     }
 
                     UI::TableNextRow();
@@ -133,6 +136,8 @@ namespace Interface
                         if (UI::Selectable(plugins[i].ID + "##Plugin.ID." + tostring(i), false))
                         {
                             m_workingPreset.PluginID = plugins[i].ID;
+                            m_presets.SortAsc();
+                            Save();
                         }
                     }
                 }
@@ -155,6 +160,7 @@ namespace Interface
                 if (UI::Button("Update"))
                 {
                     m_workingPreset.ReadSettings();
+                    Save();
                 }
 
                 UI::TableNextColumn();
@@ -163,12 +169,48 @@ namespace Interface
                 {
                     m_workingPreset.Binary = m_importBinaryString;
                     m_workingPreset.ApplySettings();
+                    Save();
                 }
 
                 UI::EndTable();
             }
 
             UI::EndDisabled();
+        }
+
+        void Save()
+        {
+            auto value = Json::Object();
+            value["Settings"] = "PresetsAndSharing";
+            value["Version"] = Meta::ExecutingPlugin().Version;
+            value["Presets"] = Json::Array();
+            for (uint i = 0; i < m_presets.Length; i++)
+            {
+                if (m_presets[i].Valid)
+                {
+                    value["Presets"].Add(m_presets[i].Save());
+                }
+            }
+            Json::ToFile(IO::FromDataFolder("PresetsAndSharing.json"), value);
+        }
+
+        void Load()
+        {
+            if (IO::FileExists(IO::FromDataFolder("PresetsAndSharing.json")))
+            {
+                auto value = Json::FromFile(IO::FromDataFolder("PresetsAndSharing.json"));
+                if (value.HasKey("Settings")
+                    && string(value["Settings"]) == "PresetsAndSharing"
+                    && value.HasKey("Presets"))
+                {
+                    for (uint i = 0; i < value["Presets"].Length; i++)
+                    {
+                        auto newPreset = PluginPreset();
+                        newPreset.Load(value["Presets"][i]);
+                        m_presets.InsertLast(newPreset);
+                    }
+                }
+            }
         }
     }
 }
