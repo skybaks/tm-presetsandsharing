@@ -27,22 +27,19 @@ namespace Interface
 
         string Binary
         {
-            get const
+            get
             {
                 return m_binary;
             }
             set
             {
-                if (m_binary != value)
+                if (m_serializer.ReadAndValidateBinary(value, m_validation))
                 {
-                    if (m_serializer.ReadAndValidateBinary(value, m_validation))
-                    {
-                        m_binary = value;
-                    }
-                    else
-                    {
-                        m_binary = "";
-                    }
+                    m_binary = value;
+                }
+                else
+                {
+                    m_binary = "";
                 }
             }
         }

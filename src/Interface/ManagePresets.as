@@ -208,8 +208,18 @@ namespace Interface
                 UI::TableSetupColumn("Import from External", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
 
                 UI::TableNextColumn();
+                Tooltip::Show("Save your current pluing settings to text. Then copy the text and send it to you friends!", true);
+                UI::SameLine();
                 UI::Text("Save Current Settings");
-                Tooltip::Show("Save your current pluing settings to sharable text. Copy the text and send it to you friends.", false);
+
+                UI::TableNextColumn();
+                Tooltip::Show("Import and apply settings from your friends! Paste settings text in the box and click \"Import\".", true);
+                UI::SameLine();
+                UI::Text("Import Shared Settings");
+
+                UI::TableNextRow();
+
+                UI::TableNextColumn();
                 UI::InputText("##Preset:ManagePresets.RenderWindow", m_workingPreset.Binary, UI::InputTextFlags(UI::InputTextFlags::ReadOnly | UI::InputTextFlags::NoHorizontalScroll));
                 UI::SameLine();
                 if (UI::Button(Icons::Clipboard + "##PresetExport"))
@@ -222,13 +232,12 @@ namespace Interface
                 }
 
                 UI::TableNextColumn();
-                UI::Text("Import Shared Settings");
-                Tooltip::Show("Import and apply settings from your friends. Paste settings text in the box and click \"Import\".", false);
                 m_importBinaryString = UI::InputText("##Import:ManagePresets.RenderWindow", m_importBinaryString, UI::InputTextFlags(UI::InputTextFlags::NoHorizontalScroll));
                 if (UI::Button("Import") && m_importBinaryString != "")
                 {
                     m_workingPreset.Binary = m_importBinaryString;
                     m_workingPreset.ApplySettings();
+                    m_importBinaryString = "";
                 }
 
                 UI::EndTable();

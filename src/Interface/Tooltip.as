@@ -26,7 +26,7 @@ namespace Interface
                 }
                 else if (g_currentHoverTimeMs >= g_tooltipHoverTimeMs)
                 {
-                    UI::SetNextWindowSize(300, 10);
+                    UI::SetNextWindowSize(275, 10);
                     UI::BeginTooltip();
                     UI::TextWrapped(text);
                     UI::EndTooltip();
