@@ -1,9 +1,12 @@
 #if !UNIT_TEST
 
-[Setting category="General"]
-string Setting_General_EnabledPlugins = "";
+enum PresetListType
+{
+    Uncategorized,
+    Categorized
+}
 
-[Setting category="General" hidden]
-bool Setting_General_VisibilityTest = false;
+[Setting category="General" name="Preset List Type" description="How the presets are displayed in the script menu"]
+PresetListType Setting_General_PresetListType = PresetListType::Categorized;
 
 #endif

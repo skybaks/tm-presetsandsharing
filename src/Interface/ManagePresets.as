@@ -49,17 +49,17 @@ namespace Interface
         {
             if (UI::BeginMenu(m_menuName))
             {
-                uint presetsVisible = 0;
-                for (uint i = 0; i < m_presets.Length; i++)
+                int presetsVisible = 0;
+                switch (Setting_General_PresetListType)
                 {
-                    if (m_presets[i].Valid)
-                    {
-                        presetsVisible++;
-                        if (UI::MenuItem(m_presets[i].Name + "##PresetMenuItem." + tostring(i)))
-                        {
-                            m_presets[i].ApplySettings();
-                        }
-                    }
+                    case PresetListType::Uncategorized:
+                        presetsVisible = RenderPresetMenuUncategorized();
+                        break;
+                    case PresetListType::Categorized:
+                        presetsVisible = RenderPresetMenuCategorized();
+                        break;
+                    default:
+                        break;
                 }
                 if (presetsVisible <= 0)
                 {
@@ -74,6 +74,47 @@ namespace Interface
                 }
                 UI::EndMenu();
             }
+        }
+
+        private int RenderPresetMenuUncategorized()
+        {
+            int presetsShown = 0;
+            for (uint i = 0; i < m_presets.Length; i++)
+            {
+                if (m_presets[i].Valid)
+                {
+                    presetsShown++;
+                    if (UI::MenuItem(m_presets[i].Name + "##PresetMenuItem." + tostring(i)))
+                    {
+                        m_presets[i].ApplySettings();
+                    }
+                }
+            }
+            return presetsShown;
+        }
+
+        private int RenderPresetMenuCategorized()
+        {
+            int presetsShown = 0;
+            string currPluginId = "";
+            for (uint i = 0; i < m_presets.Length; i++)
+            {
+                if (m_presets[i].Valid)
+                {
+                    if (m_presets[i].PluginID != currPluginId)
+                    {
+                        currPluginId = m_presets[i].PluginID;
+                        UI::Separator();
+                        UI::MenuItem(Icons::Sliders + " " + currPluginId + "##PluginHeader", enabled:false);
+                    }
+                    presetsShown++;
+                    if (UI::MenuItem(m_presets[i].Name + "##PresetMenuItem." + tostring(i)))
+                    {
+                        m_presets[i].ApplySettings();
+                    }
+                }
+            }
+            return presetsShown;
         }
 
         private void RenderPresetTab()
