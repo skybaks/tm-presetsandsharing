@@ -60,6 +60,14 @@ namespace Interface
             }
         }
 
+        string PluginName
+        {
+            get
+            {
+                return m_plugin !is null ? m_plugin.Name : "";
+            }
+        }
+
         bool Valid
         {
             get

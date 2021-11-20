@@ -101,9 +101,9 @@ namespace Interface
             {
                 if (m_presets[i].Valid)
                 {
-                    if (m_presets[i].PluginID != currPluginId)
+                    if (m_presets[i].PluginName != currPluginId)
                     {
-                        currPluginId = m_presets[i].PluginID;
+                        currPluginId = m_presets[i].PluginName;
                         UI::Separator();
                         UI::MenuItem(Icons::Sliders + " " + currPluginId + "##PluginHeader", enabled:false);
                     }
@@ -142,7 +142,7 @@ namespace Interface
                     UI::Text(m_presets[i].Valid ? "\\$0b0" + Icons::Kenney::Check : "\\$b00" + Icons::Kenney::Times);
 
                     UI::TableNextColumn();
-                    UI::Text(m_presets[i].Name + "\\$aaa - " + m_presets[i].PluginID);
+                    UI::Text(m_presets[i].Name + "\\$aaa - " + m_presets[i].PluginName);
 
                     UI::TableNextColumn();
                     if (UI::Button(Icons::PencilSquareO + "##PresetsTabTable.Edit." + tostring(i)))
@@ -179,7 +179,7 @@ namespace Interface
             UI::BeginDisabled(m_workingPreset.PluginID != "");
 
             auto plugins = Meta::AllPlugins();
-            if (UI::BeginCombo("Plugin##ManagePresets.RenderWindow", m_workingPreset.PluginID))
+            if (UI::BeginCombo("Plugin##ManagePresets.RenderWindow", m_workingPreset.PluginName))
             {
                 for (uint i = 0; i < plugins.Length; i++)
                 {
@@ -187,7 +187,7 @@ namespace Interface
                         && plugins[i].GetSettings().Length > 0
                         && plugins[i].Enabled)
                     {
-                        if (UI::Selectable(plugins[i].ID + "##Plugin.ID." + tostring(i), false))
+                        if (UI::Selectable(plugins[i].Name + "##Plugin.ID." + tostring(i), false))
                         {
                             m_workingPreset.PluginID = plugins[i].ID;
                             m_presets.SortAsc();
