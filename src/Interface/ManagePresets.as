@@ -81,15 +81,19 @@ namespace Interface
                 m_jumpToTabEdit = true;
             }
 
-            if (UI::BeginTable("PresetsTabTable", 3 /* col */, UI::TableFlags(UI::TableFlags::NoSavedSettings)))
+            if (UI::BeginTable("PresetsTabTable", 4 /* col */, UI::TableFlags(UI::TableFlags::NoSavedSettings)))
             {
-                UI::TableSetupColumn("Preset", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
+                UI::TableSetupColumn("##Valid", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 15);
+                UI::TableSetupColumn("##Preset", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
                 UI::TableSetupColumn("##Edit", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
                 UI::TableSetupColumn("##Delete", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
                 UI::TableHeadersRow();
 
                 for (uint i = 0; i < m_presets.Length; i++)
                 {
+                    UI::TableNextColumn();
+                    UI::Text(m_presets[i].Valid ? "\\$0b0" + Icons::Kenney::Check : "\\$b00" + Icons::Kenney::Times);
+
                     UI::TableNextColumn();
                     UI::Text(m_presets[i].Name + "\\$aaa - " + m_presets[i].PluginID);
 
@@ -99,6 +103,10 @@ namespace Interface
                         @m_workingPreset = m_presets[i];
                         m_importBinaryString = "";
                         m_jumpToTabEdit = true;
+                        if (m_workingPreset.Valid)
+                        {
+                            m_workingPreset.ApplySettings();
+                        }
                     }
 
                     UI::TableNextColumn();
