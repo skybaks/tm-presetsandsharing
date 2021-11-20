@@ -3,8 +3,7 @@ namespace Interface
 {
     class ManagePresets
     {
-        // TODO: default false after done debugging
-        private bool m_windowVisible = true;
+        private bool m_windowVisible = false;
         private string m_menuName = "\\$9cf" + Icons::Sliders + "\\$fff Presets";
         private string m_windowName = Icons::Sliders + " Manage Presets";
         private PluginPreset@[] m_presets;
@@ -22,6 +21,11 @@ namespace Interface
             {
                 UI::SetNextWindowSize(500, 350, UI::Cond::Once);
                 UI::Begin(m_windowName, m_windowVisible);
+
+                if (!m_windowVisible)
+                {
+                    Save();
+                }
 
                 UI::BeginTabBar("##OverallTabBar.ManagePresets.RenderWindow");
                 if (UI::BeginTabItem("Presets"))
@@ -121,7 +125,6 @@ namespace Interface
                         }
                         m_presets.RemoveAt(i);
                         m_presets.SortAsc();
-                        Save();
                     }
 
                     UI::TableNextRow();
@@ -147,7 +150,6 @@ namespace Interface
                         {
                             m_workingPreset.PluginID = plugins[i].ID;
                             m_presets.SortAsc();
-                            Save();
                         }
                     }
                 }
@@ -169,7 +171,6 @@ namespace Interface
                 if (UI::Button("Update"))
                 {
                     m_workingPreset.ReadSettings();
-                    Save();
                 }
 
                 UI::TableNextColumn();
@@ -178,7 +179,6 @@ namespace Interface
                 {
                     m_workingPreset.Binary = m_importBinaryString;
                     m_workingPreset.ApplySettings();
-                    Save();
                 }
 
                 UI::EndTable();
@@ -193,6 +193,8 @@ namespace Interface
 
         void Save()
         {
+            trace("Saving presets");
+
             auto value = Json::Object();
             value["Settings"] = "PresetsAndSharing";
             value["Version"] = Meta::ExecutingPlugin().Version;
