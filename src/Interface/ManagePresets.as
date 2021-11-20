@@ -20,6 +20,7 @@ namespace Interface
         {
             if (m_windowVisible)
             {
+                UI::SetNextWindowSize(500, 350, UI::Cond::Once);
                 UI::Begin(m_windowName, m_windowVisible);
 
                 UI::BeginTabBar("##OverallTabBar.ManagePresets.RenderWindow");
@@ -81,13 +82,14 @@ namespace Interface
                 m_jumpToTabEdit = true;
             }
 
+            UI::Separator();
+
             if (UI::BeginTable("PresetsTabTable", 4 /* col */, UI::TableFlags(UI::TableFlags::NoSavedSettings)))
             {
                 UI::TableSetupColumn("##Valid", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 15);
                 UI::TableSetupColumn("##Preset", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
                 UI::TableSetupColumn("##Edit", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
                 UI::TableSetupColumn("##Delete", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
-                UI::TableHeadersRow();
 
                 for (uint i = 0; i < m_presets.Length; i++)
                 {
@@ -137,7 +139,9 @@ namespace Interface
             {
                 for (uint i = 0; i < plugins.Length; i++)
                 {
-                    if (plugins[i] !is Meta::ExecutingPlugin() && plugins[i].GetSettings().Length > 0)
+                    if (plugins[i] !is Meta::ExecutingPlugin()
+                        && plugins[i].GetSettings().Length > 0
+                        && plugins[i].Enabled)
                     {
                         if (UI::Selectable(plugins[i].ID + "##Plugin.ID." + tostring(i), false))
                         {
@@ -159,7 +163,6 @@ namespace Interface
             {
                 UI::TableSetupColumn("Save Current Settings", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
                 UI::TableSetupColumn("Import from External", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
-                UI::TableHeadersRow();
 
                 UI::TableNextColumn();
                 UI::InputText("##Preset:ManagePresets.RenderWindow", m_workingPreset.Binary, UI::InputTextFlags(UI::InputTextFlags::ReadOnly | UI::InputTextFlags::NoHorizontalScroll));
@@ -180,6 +183,10 @@ namespace Interface
 
                 UI::EndTable();
             }
+
+            UI::Separator();
+
+            m_workingPreset.RenderPreset();
 
             UI::EndDisabled();
         }

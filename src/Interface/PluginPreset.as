@@ -7,8 +7,23 @@ namespace Interface
         private string m_name;
         private Meta::Plugin@ m_plugin;
         private Serialization::SettingsInterface m_serializer;
+        private Serialization::SettingsSerializationValidation m_validation;
 
-        string Name { get { return m_name; } set { m_name = value; } }
+        string Name
+        {
+            get
+            {
+                return m_name;
+            }
+            set
+            {
+                if (m_name != value)
+                {
+                    m_name = value;
+                    m_validation.ValidPresetName = m_name != "";
+                }
+            }
+        }
 
         string Binary
         {
@@ -18,9 +33,16 @@ namespace Interface
             }
             set
             {
-                if (m_binary != value && m_serializer.ReadAndValidateBinary(value))
+                if (m_binary != value)
                 {
-                    m_binary = value;
+                    if (m_serializer.ReadAndValidateBinary(value, m_validation))
+                    {
+                        m_binary = value;
+                    }
+                    else
+                    {
+                        m_binary = "";
+                    }
                 }
             }
         }
@@ -36,7 +58,7 @@ namespace Interface
                 if (m_plugin is null)
                 {
                     @m_plugin = Meta::GetPluginFromID(value);
-                    m_serializer.Initialize(m_plugin);
+                    m_serializer.Initialize(m_plugin, m_validation);
                 }
             }
         }
@@ -45,7 +67,7 @@ namespace Interface
         {
             get
             {
-                return m_plugin !is null && Name != "" && Binary != "";
+                return m_plugin !is null && Name != "" && Binary != "" && m_validation.Valid;
             }
         }
 
@@ -60,7 +82,7 @@ namespace Interface
 
         void ApplySettings()
         {
-            bool success = m_serializer.ReadAndValidateBinary(Binary);
+            bool success = m_serializer.ReadAndValidateBinary(Binary, m_validation);
             if (success)
             {
                 m_serializer.ApplyBinaryToSettings();
@@ -69,7 +91,6 @@ namespace Interface
 
         void ReadSettings()
         {
-            m_serializer.Initialize(m_plugin);
             bool success = m_serializer.WriteCurrentToBinary(Binary);
         }
 
@@ -87,6 +108,11 @@ namespace Interface
             object["PluginID"] = PluginID;
             object["Binary"] = Binary;
             return object;
+        }
+
+        void RenderPreset()
+        {
+            m_validation.RenderValidationStatus();
         }
     }
 }

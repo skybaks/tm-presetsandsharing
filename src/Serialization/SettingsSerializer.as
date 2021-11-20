@@ -10,150 +10,156 @@ namespace Serialization
         }
 
         // Dictionary Format: string, Serialization::SettingsDataItem@
-        bool ReadFromBinary(const string&in inputBase64String, uint8&out pluginIdResult, dictionary@ settingsResult)
+        bool ReadFromBinary(const string&in inputBase64String, uint8&out pluginIdResult, dictionary@ settingsResult, Serialization::SettingsSerializationValidation@ validation)
         {
-            m_buffer.Resize(0);
-            m_buffer.WriteFromBase64(inputBase64String);
-
-            bool validParity = CheckParity();
-            if (!validParity)
+            try
             {
-                error("Error reading binary settings. Parity check failed.");
+                m_buffer.Resize(0);
+                m_buffer.WriteFromBase64(inputBase64String);
+
+                validation.ValidParityCheck = CheckParity();
+                if (!validation.ValidParityCheck) { return false; }
+
+                m_buffer.Seek(0);
+                uint8 headerByte0 = m_buffer.ReadUInt8();
+                uint serializerVersion = (headerByte0 & 0xF0) >> 4;
+                uint8 settingsCount = m_buffer.ReadUInt8();
+                pluginIdResult = m_buffer.ReadUInt8();
+
+                validation.ValidSettingTypes = true;
+                uint settingsRead = 0;
+                while (!m_buffer.AtEnd() && settingsRead < settingsCount)
+                {
+                    uint16 settingId = m_buffer.ReadUInt16();
+                    uint8 settingByte2 = m_buffer.ReadUInt8();
+                    Meta::PluginSettingType settingType = Meta::PluginSettingType((settingByte2 & 0xF0) >> 4);
+                    string stringifiedValue = "";
+                    if (settingType == Meta::PluginSettingType::Bool)
+                    {
+                        uint boolValue = settingByte2 & 0x01;
+                        stringifiedValue = tostring(boolValue);
+                    }
+                    else if (settingType == Meta::PluginSettingType::Enum
+                        || settingType == Meta::PluginSettingType::Int8
+                        || settingType == Meta::PluginSettingType::Int16
+                        || settingType == Meta::PluginSettingType::Int32)
+                    {
+                        Serialization::BinaryFormatV0::IntegerByteCount byteCount = Serialization::BinaryFormatV0::IntegerByteCount((settingByte2 >> 2) & 0x03);
+                        bool isSigned = (settingByte2 & 0x02) != 0;
+
+                        if (byteCount == BinaryFormatV0::IntegerByteCount::Zero)
+                        {
+                            stringifiedValue = tostring(0);
+                        }
+                        else if (byteCount == BinaryFormatV0::IntegerByteCount::One)
+                        {
+                            if (isSigned)
+                            {
+                                stringifiedValue = tostring(m_buffer.ReadInt8());
+                            }
+                            else
+                            {
+                                stringifiedValue = tostring(m_buffer.ReadUInt8());
+                            }
+                        }
+                        else if (byteCount == BinaryFormatV0::IntegerByteCount::Two)
+                        {
+                            if (isSigned)
+                            {
+                                stringifiedValue = tostring(m_buffer.ReadInt16());
+                            }
+                            else
+                            {
+                                stringifiedValue = tostring(m_buffer.ReadUInt16());
+                            }
+                        }
+                        else /* Four Bytes */
+                        {
+                            if (isSigned)
+                            {
+                                stringifiedValue = tostring(m_buffer.ReadInt32());
+                            }
+                            else
+                            {
+                                stringifiedValue = tostring(m_buffer.ReadUInt32());
+                            }
+                        }
+                    }
+                    else if (settingType == Meta::PluginSettingType::Float)
+                    {
+                        Serialization::BinaryFormatV0::FloatByteCount byteCount = Serialization::BinaryFormatV0::FloatByteCount((settingByte2 >> 2) & 0x03);
+                        Serialization::BinaryFormatV0::FloatResolution resolution = Serialization::BinaryFormatV0::FloatResolution((settingByte2 >> 0) & 0x03);
+                        stringifiedValue = ReadPackedFloatToString(byteCount, resolution);
+                    }
+                    else if (settingType == Meta::PluginSettingType::String)
+                    {
+                        uint64 stringLen = settingByte2 & 0x0F;
+                        if (stringLen == 15)
+                        {
+                            uint additionalStringLen = m_buffer.ReadUInt8();
+                            stringLen += additionalStringLen;
+                        }
+                        stringifiedValue = m_buffer.ReadString(stringLen);
+                    }
+                    else if (settingType == Meta::PluginSettingType::Vec2)
+                    {
+                        Serialization::BinaryFormatV0::FloatByteCount byteCountX = Serialization::BinaryFormatV0::FloatByteCount((settingByte2 >> 2) & 0x03);
+                        Serialization::BinaryFormatV0::FloatResolution resolutionX = Serialization::BinaryFormatV0::FloatResolution((settingByte2 >> 0) & 0x03);
+                        uint8 settingByte3 = m_buffer.ReadUInt8();
+                        Serialization::BinaryFormatV0::FloatByteCount byteCountY = Serialization::BinaryFormatV0::FloatByteCount((settingByte3 >> 6) & 0x03);
+                        Serialization::BinaryFormatV0::FloatResolution resolutionY = Serialization::BinaryFormatV0::FloatResolution((settingByte3 >> 4) & 0x03);
+                        stringifiedValue =        ReadPackedFloatToString(byteCountX, resolutionX);
+                        stringifiedValue += ";" + ReadPackedFloatToString(byteCountY, resolutionY);
+                    }
+                    else if (settingType == Meta::PluginSettingType::Vec3)
+                    {
+                        Serialization::BinaryFormatV0::FloatByteCount byteCountX = Serialization::BinaryFormatV0::FloatByteCount((settingByte2 >> 2) & 0x03);
+                        Serialization::BinaryFormatV0::FloatResolution resolutionX = Serialization::BinaryFormatV0::FloatResolution((settingByte2 >> 0) & 0x03);
+                        uint8 settingByte3 = m_buffer.ReadUInt8();
+                        Serialization::BinaryFormatV0::FloatByteCount byteCountY = Serialization::BinaryFormatV0::FloatByteCount((settingByte3 >> 6) & 0x03);
+                        Serialization::BinaryFormatV0::FloatResolution resolutionY = Serialization::BinaryFormatV0::FloatResolution((settingByte3 >> 4) & 0x03);
+                        Serialization::BinaryFormatV0::FloatByteCount byteCountZ = Serialization::BinaryFormatV0::FloatByteCount((settingByte3 >> 2) & 0x03);
+                        Serialization::BinaryFormatV0::FloatResolution resolutionZ = Serialization::BinaryFormatV0::FloatResolution((settingByte3 >> 0) & 0x03);
+                        stringifiedValue =        ReadPackedFloatToString(byteCountX, resolutionX);
+                        stringifiedValue += ";" + ReadPackedFloatToString(byteCountY, resolutionY);
+                        stringifiedValue += ";" + ReadPackedFloatToString(byteCountZ, resolutionZ);
+                    }
+                    else if (settingType == Meta::PluginSettingType::Vec4)
+                    {
+                        Serialization::BinaryFormatV0::FloatByteCount byteCountX = Serialization::BinaryFormatV0::FloatByteCount((settingByte2 >> 2) & 0x03);
+                        Serialization::BinaryFormatV0::FloatResolution resolutionX = Serialization::BinaryFormatV0::FloatResolution((settingByte2 >> 0) & 0x03);
+                        uint8 settingByte3 = m_buffer.ReadUInt8();
+                        Serialization::BinaryFormatV0::FloatByteCount byteCountY = Serialization::BinaryFormatV0::FloatByteCount((settingByte3 >> 6) & 0x03);
+                        Serialization::BinaryFormatV0::FloatResolution resolutionY = Serialization::BinaryFormatV0::FloatResolution((settingByte3 >> 4) & 0x03);
+                        Serialization::BinaryFormatV0::FloatByteCount byteCountZ = Serialization::BinaryFormatV0::FloatByteCount((settingByte3 >> 2) & 0x03);
+                        Serialization::BinaryFormatV0::FloatResolution resolutionZ = Serialization::BinaryFormatV0::FloatResolution((settingByte3 >> 0) & 0x03);
+                        uint8 settingByte4 = m_buffer.ReadUInt8();
+                        Serialization::BinaryFormatV0::FloatByteCount byteCountW = Serialization::BinaryFormatV0::FloatByteCount((settingByte4 >> 6) & 0x03);
+                        Serialization::BinaryFormatV0::FloatResolution resolutionW = Serialization::BinaryFormatV0::FloatResolution((settingByte4 >> 4) & 0x03);
+                        stringifiedValue =        ReadPackedFloatToString(byteCountX, resolutionX);
+                        stringifiedValue += ";" + ReadPackedFloatToString(byteCountY, resolutionY);
+                        stringifiedValue += ";" + ReadPackedFloatToString(byteCountZ, resolutionZ);
+                        stringifiedValue += ";" + ReadPackedFloatToString(byteCountW, resolutionW);
+                    }
+                    else
+                    {
+                        validation.ValidSettingTypes = false;
+                        return false;
+                    }
+
+                    auto newSetting = Serialization::SettingsDataItem();
+                    newSetting.m_SettingType = settingType;
+                    newSetting.m_ValueStringified = stringifiedValue;
+                    settingsResult[tostring(settingId)] = newSetting;
+                    settingsRead += 1;
+                }
+            }
+            catch
+            {
+                validation.ValidBinaryDeserialization = false;
                 return false;
             }
-
-            m_buffer.Seek(0);
-            uint8 headerByte0 = m_buffer.ReadUInt8();
-            uint serializerVersion = (headerByte0 & 0xF0) >> 4;
-            uint8 settingsCount = m_buffer.ReadUInt8();
-            pluginIdResult = m_buffer.ReadUInt8();
-
-            uint settingsRead = 0;
-            while (!m_buffer.AtEnd() && settingsRead < settingsCount)
-            {
-                uint16 settingId = m_buffer.ReadUInt16();
-                uint8 settingByte2 = m_buffer.ReadUInt8();
-                Meta::PluginSettingType settingType = Meta::PluginSettingType((settingByte2 & 0xF0) >> 4);
-                string stringifiedValue = "";
-                if (settingType == Meta::PluginSettingType::Bool)
-                {
-                    uint boolValue = settingByte2 & 0x01;
-                    stringifiedValue = tostring(boolValue);
-                }
-                else if (settingType == Meta::PluginSettingType::Enum
-                    || settingType == Meta::PluginSettingType::Int8
-                    || settingType == Meta::PluginSettingType::Int16
-                    || settingType == Meta::PluginSettingType::Int32)
-                {
-                    Serialization::BinaryFormatV0::IntegerByteCount byteCount = Serialization::BinaryFormatV0::IntegerByteCount((settingByte2 >> 2) & 0x03);
-                    bool isSigned = (settingByte2 & 0x02) != 0;
-
-                    if (byteCount == BinaryFormatV0::IntegerByteCount::Zero)
-                    {
-                        stringifiedValue = tostring(0);
-                    }
-                    else if (byteCount == BinaryFormatV0::IntegerByteCount::One)
-                    {
-                        if (isSigned)
-                        {
-                            stringifiedValue = tostring(m_buffer.ReadInt8());
-                        }
-                        else
-                        {
-                            stringifiedValue = tostring(m_buffer.ReadUInt8());
-                        }
-                    }
-                    else if (byteCount == BinaryFormatV0::IntegerByteCount::Two)
-                    {
-                        if (isSigned)
-                        {
-                            stringifiedValue = tostring(m_buffer.ReadInt16());
-                        }
-                        else
-                        {
-                            stringifiedValue = tostring(m_buffer.ReadUInt16());
-                        }
-                    }
-                    else /* Four Bytes */
-                    {
-                        if (isSigned)
-                        {
-                            stringifiedValue = tostring(m_buffer.ReadInt32());
-                        }
-                        else
-                        {
-                            stringifiedValue = tostring(m_buffer.ReadUInt32());
-                        }
-                    }
-                }
-                else if (settingType == Meta::PluginSettingType::Float)
-                {
-                    Serialization::BinaryFormatV0::FloatByteCount byteCount = Serialization::BinaryFormatV0::FloatByteCount((settingByte2 >> 2) & 0x03);
-                    Serialization::BinaryFormatV0::FloatResolution resolution = Serialization::BinaryFormatV0::FloatResolution((settingByte2 >> 0) & 0x03);
-                    stringifiedValue = ReadPackedFloatToString(byteCount, resolution);
-                }
-                else if (settingType == Meta::PluginSettingType::String)
-                {
-                    uint64 stringLen = settingByte2 & 0x0F;
-                    if (stringLen == 15)
-                    {
-                        uint additionalStringLen = m_buffer.ReadUInt8();
-                        stringLen += additionalStringLen;
-                    }
-                    stringifiedValue = m_buffer.ReadString(stringLen);
-                }
-                else if (settingType == Meta::PluginSettingType::Vec2)
-                {
-                    Serialization::BinaryFormatV0::FloatByteCount byteCountX = Serialization::BinaryFormatV0::FloatByteCount((settingByte2 >> 2) & 0x03);
-                    Serialization::BinaryFormatV0::FloatResolution resolutionX = Serialization::BinaryFormatV0::FloatResolution((settingByte2 >> 0) & 0x03);
-                    uint8 settingByte3 = m_buffer.ReadUInt8();
-                    Serialization::BinaryFormatV0::FloatByteCount byteCountY = Serialization::BinaryFormatV0::FloatByteCount((settingByte3 >> 6) & 0x03);
-                    Serialization::BinaryFormatV0::FloatResolution resolutionY = Serialization::BinaryFormatV0::FloatResolution((settingByte3 >> 4) & 0x03);
-                    stringifiedValue =        ReadPackedFloatToString(byteCountX, resolutionX);
-                    stringifiedValue += ";" + ReadPackedFloatToString(byteCountY, resolutionY);
-                }
-                else if (settingType == Meta::PluginSettingType::Vec3)
-                {
-                    Serialization::BinaryFormatV0::FloatByteCount byteCountX = Serialization::BinaryFormatV0::FloatByteCount((settingByte2 >> 2) & 0x03);
-                    Serialization::BinaryFormatV0::FloatResolution resolutionX = Serialization::BinaryFormatV0::FloatResolution((settingByte2 >> 0) & 0x03);
-                    uint8 settingByte3 = m_buffer.ReadUInt8();
-                    Serialization::BinaryFormatV0::FloatByteCount byteCountY = Serialization::BinaryFormatV0::FloatByteCount((settingByte3 >> 6) & 0x03);
-                    Serialization::BinaryFormatV0::FloatResolution resolutionY = Serialization::BinaryFormatV0::FloatResolution((settingByte3 >> 4) & 0x03);
-                    Serialization::BinaryFormatV0::FloatByteCount byteCountZ = Serialization::BinaryFormatV0::FloatByteCount((settingByte3 >> 2) & 0x03);
-                    Serialization::BinaryFormatV0::FloatResolution resolutionZ = Serialization::BinaryFormatV0::FloatResolution((settingByte3 >> 0) & 0x03);
-                    stringifiedValue =        ReadPackedFloatToString(byteCountX, resolutionX);
-                    stringifiedValue += ";" + ReadPackedFloatToString(byteCountY, resolutionY);
-                    stringifiedValue += ";" + ReadPackedFloatToString(byteCountZ, resolutionZ);
-                }
-                else if (settingType == Meta::PluginSettingType::Vec4)
-                {
-                    Serialization::BinaryFormatV0::FloatByteCount byteCountX = Serialization::BinaryFormatV0::FloatByteCount((settingByte2 >> 2) & 0x03);
-                    Serialization::BinaryFormatV0::FloatResolution resolutionX = Serialization::BinaryFormatV0::FloatResolution((settingByte2 >> 0) & 0x03);
-                    uint8 settingByte3 = m_buffer.ReadUInt8();
-                    Serialization::BinaryFormatV0::FloatByteCount byteCountY = Serialization::BinaryFormatV0::FloatByteCount((settingByte3 >> 6) & 0x03);
-                    Serialization::BinaryFormatV0::FloatResolution resolutionY = Serialization::BinaryFormatV0::FloatResolution((settingByte3 >> 4) & 0x03);
-                    Serialization::BinaryFormatV0::FloatByteCount byteCountZ = Serialization::BinaryFormatV0::FloatByteCount((settingByte3 >> 2) & 0x03);
-                    Serialization::BinaryFormatV0::FloatResolution resolutionZ = Serialization::BinaryFormatV0::FloatResolution((settingByte3 >> 0) & 0x03);
-                    uint8 settingByte4 = m_buffer.ReadUInt8();
-                    Serialization::BinaryFormatV0::FloatByteCount byteCountW = Serialization::BinaryFormatV0::FloatByteCount((settingByte4 >> 6) & 0x03);
-                    Serialization::BinaryFormatV0::FloatResolution resolutionW = Serialization::BinaryFormatV0::FloatResolution((settingByte4 >> 4) & 0x03);
-                    stringifiedValue =        ReadPackedFloatToString(byteCountX, resolutionX);
-                    stringifiedValue += ";" + ReadPackedFloatToString(byteCountY, resolutionY);
-                    stringifiedValue += ";" + ReadPackedFloatToString(byteCountZ, resolutionZ);
-                    stringifiedValue += ";" + ReadPackedFloatToString(byteCountW, resolutionW);
-                }
-                else
-                {
-                    error("ERROR: Unknown or unexpected plugin setting type encountered while reading binary.");
-                }
-
-                auto newSetting = Serialization::SettingsDataItem();
-                newSetting.m_SettingType = settingType;
-                newSetting.m_ValueStringified = stringifiedValue;
-                settingsResult[tostring(settingId)] = newSetting;
-                settingsRead += 1;
-            }
-
+            validation.ValidBinaryDeserialization = true;
             return true;
         }
 

@@ -14,29 +14,29 @@ namespace Serialization
         {
         }
 
-        void Initialize(Meta::Plugin@ plugin, const string[]@ settingCategories = {})
+        void Initialize(Meta::Plugin@ plugin, Serialization::SettingsSerializationValidation@ validation, const string[]@ settingCategories = {})
         {
             @m_plugin = plugin;
+            validation.ResetSerialization();
+            validation.ValidPluginObject = m_plugin !is null;
             m_settingsFromPlugin.DeleteAll();
             m_settingsFromBinary.DeleteAll();
             ReadPluginSettings(settingCategories);
         }
 
-        bool ReadAndValidateBinary(const string&in inputBase64String)
+        bool ReadAndValidateBinary(const string&in inputBase64String, Serialization::SettingsSerializationValidation@ validation)
         {
-            bool success = true;
+            validation.ResetSerialization();
+            validation.ValidPluginObject = m_plugin !is null;
+
             uint8 pluginIdFromBinary;
-            bool readSuccess = m_serializer.ReadFromBinary(inputBase64String, pluginIdFromBinary, m_settingsFromBinary);
+            bool readSuccess = m_serializer.ReadFromBinary(inputBase64String, pluginIdFromBinary, m_settingsFromBinary, validation);
 
-            bool pluginIdMatch = pluginIdFromBinary == Hash8(m_plugin.Name);
-            if (!pluginIdMatch)
-            {
-                error("Error unpacking binary. Plugin ID mismatch.");
-            }
+            validation.ValidPluginID = pluginIdFromBinary == Hash8(m_plugin.Name);
 
-            bool validationSuccess = true;
-            if (readSuccess)
+            if (readSuccess && validation.ValidPluginID)
             {
+                validation.ValidSettingIdMatch = true;
                 string[]@ keys = m_settingsFromBinary.GetKeys();
                 for (uint i = 0; i < keys.Length; i++)
                 {
@@ -44,19 +44,18 @@ namespace Serialization
                     if (!m_settingsFromPlugin.Exists(keys[i])
                         || cast<Meta::PluginSetting>(m_settingsFromPlugin[keys[i]]).Type != bin.m_SettingType)
                     {
-                        validationSuccess = false;
-                        error("Non matching setting ID: " + keys[i]);
+                        validation.ValidSettingIdMatch = false;
+                        break;
                     }
                 }
             }
 
-            if (!readSuccess || !pluginIdMatch || !validationSuccess)
+            if (!readSuccess || !validation.ValidPluginID || !validation.ValidSettingIdMatch)
             {
                 m_settingsFromBinary.DeleteAll();
-                success = false;
-                error("Issue detected during read and validation. Unable to safely deserialize.");
+                return false;
             }
-            return success;
+            return true;
         }
 
         bool WriteCurrentToBinary(string&out result)
