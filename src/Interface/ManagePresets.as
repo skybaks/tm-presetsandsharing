@@ -19,7 +19,7 @@ namespace Interface
         {
             if (m_windowVisible)
             {
-                UI::SetNextWindowSize(500, 350, UI::Cond::Once);
+                UI::SetNextWindowSize(500, 400, UI::Cond::Once);
                 UI::Begin(m_windowName, m_windowVisible);
 
                 if (!m_windowVisible)
@@ -209,6 +209,7 @@ namespace Interface
 
                 UI::TableNextColumn();
                 UI::Text("Save Current Settings");
+                Tooltip::Show("Save your current pluing settings to sharable text. Copy the text and send it to you friends.", false);
                 UI::InputText("##Preset:ManagePresets.RenderWindow", m_workingPreset.Binary, UI::InputTextFlags(UI::InputTextFlags::ReadOnly | UI::InputTextFlags::NoHorizontalScroll));
                 UI::SameLine();
                 if (UI::Button(Icons::Clipboard + "##PresetExport"))
@@ -222,6 +223,7 @@ namespace Interface
 
                 UI::TableNextColumn();
                 UI::Text("Import Shared Settings");
+                Tooltip::Show("Import and apply settings from your friends. Paste settings text in the box and click \"Import\".", false);
                 m_importBinaryString = UI::InputText("##Import:ManagePresets.RenderWindow", m_importBinaryString, UI::InputTextFlags(UI::InputTextFlags::NoHorizontalScroll));
                 if (UI::Button("Import") && m_importBinaryString != "")
                 {

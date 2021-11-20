@@ -22,6 +22,15 @@ void Main()
 {
 #if !UNIT_TEST
     m_interface.Load();
+    int dt = 0;
+    int prevFrameTime = Time::Now;
+    while (true)
+    {
+        sleep(50);
+        dt = Time::Now - prevFrameTime;
+        Interface::Tooltip::Update(dt);
+        prevFrameTime = Time::Now;
+    }
 #else
     Test::TestMain();
 #endif
