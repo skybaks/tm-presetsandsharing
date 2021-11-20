@@ -208,13 +208,20 @@ namespace Interface
                 UI::TableSetupColumn("Import from External", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
 
                 UI::TableNextColumn();
+                UI::Text("Save Current Settings");
                 UI::InputText("##Preset:ManagePresets.RenderWindow", m_workingPreset.Binary, UI::InputTextFlags(UI::InputTextFlags::ReadOnly | UI::InputTextFlags::NoHorizontalScroll));
+                UI::SameLine();
+                if (UI::Button(Icons::Clipboard + "##PresetExport"))
+                {
+                    IO::SetClipboard(m_workingPreset.Binary);
+                }
                 if (UI::Button("Update"))
                 {
                     m_workingPreset.ReadSettings();
                 }
 
                 UI::TableNextColumn();
+                UI::Text("Import Shared Settings");
                 m_importBinaryString = UI::InputText("##Import:ManagePresets.RenderWindow", m_importBinaryString, UI::InputTextFlags(UI::InputTextFlags::NoHorizontalScroll));
                 if (UI::Button("Import") && m_importBinaryString != "")
                 {
