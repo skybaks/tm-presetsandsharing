@@ -96,7 +96,7 @@ namespace Serialization
                         uint64 stringLen = settingByte2 & 0x0F;
                         if (stringLen == 15)
                         {
-                            uint additionalStringLen = m_buffer.ReadUInt8();
+                            uint additionalStringLen = m_buffer.ReadUInt32();
                             stringLen += additionalStringLen;
                         }
                         stringifiedValue = m_buffer.ReadString(stringLen);
@@ -269,15 +269,15 @@ namespace Serialization
                 else if (pluginSetting.Type == Meta::PluginSettingType::String)
                 {
                     string settingValue = pluginSetting.ReadString();
-                    // TODO: Need to handle situation where string is longer than this?
-                    uint64 stringLengthTotal = Math::Min(Serialization::UINT8_MAX + 15, settingValue.Length);
+                    uint64 stringLengthTotal = settingValue.Length;
+                    if (stringLengthTotal > (uint64(Serialization::UINT32_MAX) + 15)) { stringLengthTotal = (uint64(Serialization::UINT32_MAX) + 15); }
                     settingValue = settingValue.SubStr(0, stringLengthTotal);
-                    uint stringLengthPart1 = Math::Min(15, stringLengthTotal);
-                    uint stringLengthPart2 = Math::Max(0, stringLengthTotal - stringLengthPart1);
+                    uint stringLengthPart1 = uint64(15) < stringLengthTotal ? uint64(15) : stringLengthTotal;
+                    uint stringLengthPart2 = 0 < (stringLengthTotal - stringLengthPart1) ? (stringLengthTotal - stringLengthPart1) : 0;
                     m_buffer.Write(uint8((settingType << 4) | (0x0F & stringLengthPart1)));
                     if (stringLengthPart2 > 0)
                     {
-                        m_buffer.Write(uint8(stringLengthPart2));
+                        m_buffer.Write(uint(stringLengthPart2));
                     }
                     m_buffer.Write(settingValue);
                 }

@@ -50,8 +50,8 @@ A plugin for Openplanet in Trackmania. Making use of the plugin setting Meta API
 |  0-1 | 0-15 | VarName hash       | Hash of settings variable name                                                     |
 |    2 |  0-3 | Setting type       | Type enumeration                                                                   |
 |    2 |  4-7 | Data Byte Count 1  | Number of bytes of data. If set to 15, then another byte of count data will follow |
-|    3 |  0-7 | Data Byte Count 2  | [OPTIONAL] If previous field was 15 this is included and data count is sum of both |
-|   3+ |  n*8 | String Data        | String data of count described                                                     |
+|  3-6 | 0-31 | Data Bytes Count 2 | [OPTIONAL] If previous field was 15 this is included and data count is sum of both |
+|   7+ |  n*8 | String Data        | String data of count described                                                     |
 
 ### Vec2 Setting
 
