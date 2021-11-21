@@ -261,10 +261,7 @@ namespace Interface
             value["Presets"] = Json::Array();
             for (uint i = 0; i < m_presets.Length; i++)
             {
-                if (m_presets[i].Valid)
-                {
-                    value["Presets"].Add(m_presets[i].Save());
-                }
+                value["Presets"].Add(m_presets[i].Save());
             }
             Json::ToFile(IO::FromDataFolder("PresetsAndSharing.json"), value);
         }
