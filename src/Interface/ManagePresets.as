@@ -1,3 +1,4 @@
+#if !UNIT_TEST
 
 namespace Interface
 {
@@ -288,3 +289,5 @@ namespace Interface
         }
     }
 }
+
+#endif

@@ -1,4 +1,3 @@
-//#define UNIT_TEST
 
 #if !UNIT_TEST
 Interface::ManagePresets m_interface;
