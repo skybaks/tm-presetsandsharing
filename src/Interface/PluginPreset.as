@@ -5,7 +5,7 @@ namespace Interface
     {
         private string m_binary;
         private string m_name;
-        private Meta::Plugin@ m_plugin;
+        private string m_pluginId;
         private Serialization::SettingsInterface m_serializer;
         private Serialization::SettingsSerializationValidation m_validation;
 
@@ -48,14 +48,14 @@ namespace Interface
         {
             get
             {
-                return m_plugin !is null ? m_plugin.ID : "";
+                return m_pluginId;
             }
             set
             {
-                if (m_plugin is null)
+                if (m_pluginId != value)
                 {
-                    @m_plugin = Meta::GetPluginFromID(value);
-                    m_serializer.Initialize(m_plugin, m_validation);
+                    m_pluginId = value;
+                    m_serializer.Initialize(m_pluginId, m_validation);
                 }
             }
         }
@@ -64,7 +64,7 @@ namespace Interface
         {
             get
             {
-                return m_plugin !is null ? m_plugin.Name : "";
+                return Meta::GetPluginFromID(PluginID) !is null ? Meta::GetPluginFromID(PluginID).Name : "";
             }
         }
 
@@ -72,7 +72,7 @@ namespace Interface
         {
             get
             {
-                return m_plugin !is null && Name != "" && Binary != "" && m_validation.Valid;
+                return PluginID != "" && Name != "" && Binary != "" && m_validation.Valid;
             }
         }
 
@@ -90,13 +90,13 @@ namespace Interface
             bool success = m_serializer.ReadAndValidateBinary(Binary, m_validation);
             if (success)
             {
-                m_serializer.ApplyBinaryToSettings();
+                m_serializer.ApplyBinaryToSettings(m_validation);
             }
         }
 
         void ReadSettings()
         {
-            bool success = m_serializer.WriteCurrentToBinary(Binary);
+            bool success = m_serializer.WriteCurrentToBinary(Binary, m_validation);
         }
 
         void Load(Json::Value object)

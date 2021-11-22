@@ -3,36 +3,39 @@ namespace Serialization
 {
     class SettingsInterface
     {
-        private Meta::Plugin@ m_plugin;
+        private string m_pluginId;
         private Serialization::SettingsSerializer m_serializer;
-        // Dictionary Format: string, Meta::PluginSetting@
-        private dictionary m_settingsFromPlugin;
         // Dictionary Format: string, Serialization::SettingsDataItem@
         private dictionary m_settingsFromBinary;
+        private string[] m_settingCategories;
 
         SettingsInterface()
         {
         }
 
-        void Initialize(Meta::Plugin@ plugin, Serialization::SettingsSerializationValidation@ validation, const string[]@ settingCategories = {})
+        void Initialize(const string&in pluginId, Serialization::SettingsSerializationValidation@ validation, const string[] settingCategories = {})
         {
-            @m_plugin = plugin;
+            m_pluginId = pluginId;
             validation.ResetSerialization();
-            validation.ValidPluginObject = m_plugin !is null;
-            m_settingsFromPlugin.DeleteAll();
+            validation.ValidPluginObject = Meta::GetPluginFromID(m_pluginId) !is null;
             m_settingsFromBinary.DeleteAll();
-            ReadPluginSettings(settingCategories);
+            m_settingCategories = settingCategories;
         }
 
         bool ReadAndValidateBinary(const string&in inputBase64String, Serialization::SettingsSerializationValidation@ validation)
         {
             validation.ResetSerialization();
-            validation.ValidPluginObject = m_plugin !is null;
+            Meta::Plugin@ pluginObject = Meta::GetPluginFromID(m_pluginId);
+            validation.ValidPluginObject = pluginObject !is null;
+            if (!validation.ValidPluginObject) { return false; }
+
+            dictionary settingsFromPlugin;
+            ReadPluginSettings(pluginObject, settingsFromPlugin);
 
             uint8 pluginIdFromBinary;
             bool readSuccess = m_serializer.ReadFromBinary(inputBase64String, pluginIdFromBinary, m_settingsFromBinary, validation);
 
-            validation.ValidPluginID = pluginIdFromBinary == Hash8(m_plugin.Name);
+            validation.ValidPluginID = pluginIdFromBinary == Hash8(pluginObject.Name);
 
             if (readSuccess && validation.ValidPluginID)
             {
@@ -41,8 +44,8 @@ namespace Serialization
                 for (uint i = 0; i < keys.Length; i++)
                 {
                     auto bin = cast<Serialization::SettingsDataItem>(m_settingsFromBinary[keys[i]]);
-                    if (!m_settingsFromPlugin.Exists(keys[i])
-                        || cast<Meta::PluginSetting>(m_settingsFromPlugin[keys[i]]).Type != bin.m_SettingType)
+                    if (!settingsFromPlugin.Exists(keys[i])
+                        || cast<Meta::PluginSetting>(settingsFromPlugin[keys[i]]).Type != bin.m_SettingType)
                     {
                         validation.ValidSettingIdMatch = false;
                         break;
@@ -58,14 +61,28 @@ namespace Serialization
             return true;
         }
 
-        bool WriteCurrentToBinary(string&out result)
+        bool WriteCurrentToBinary(string&out result, Serialization::SettingsSerializationValidation@ validation)
         {
-            return m_serializer.WriteToBinary(m_settingsFromPlugin, m_plugin.Name, result);
+            Meta::Plugin@ pluginObject = Meta::GetPluginFromID(m_pluginId);
+            validation.ValidPluginObject = pluginObject !is null;
+            if (!validation.ValidPluginObject) { return false; }
+
+            dictionary settingsFromPlugin;
+            ReadPluginSettings(pluginObject, settingsFromPlugin);
+
+            return m_serializer.WriteToBinary(settingsFromPlugin, pluginObject.Name, result);
         }
 
-        bool ApplyBinaryToSettings()
+        bool ApplyBinaryToSettings(Serialization::SettingsSerializationValidation@ validation)
         {
             bool success = true;
+
+            Meta::Plugin@ pluginObject = Meta::GetPluginFromID(m_pluginId);
+            validation.ValidPluginObject = pluginObject !is null;
+            if (!validation.ValidPluginObject) { return false; }
+
+            dictionary settingsFromPlugin;
+            ReadPluginSettings(pluginObject, settingsFromPlugin);
 
             if (m_settingsFromBinary.GetKeys().Length <= 0)
             {
@@ -78,9 +95,9 @@ namespace Serialization
             for (uint i = 0; i < keys.Length; i++)
             {
                 auto bin = cast<Serialization::SettingsDataItem>(m_settingsFromBinary[keys[i]]);
-                if (m_settingsFromPlugin.Exists(keys[i]))
+                if (settingsFromPlugin.Exists(keys[i]))
                 {
-                    auto plg = cast<Meta::PluginSetting>(m_settingsFromPlugin[keys[i]]);
+                    auto plg = cast<Meta::PluginSetting>(settingsFromPlugin[keys[i]]);
                     if (plg.Type == bin.m_SettingType)
                     {
                         switch (bin.m_SettingType)
@@ -127,15 +144,15 @@ namespace Serialization
             return success;
         }
 
-        private void ReadPluginSettings(const string[]@ categories = {})
+        // Dictionary Format: string, Meta::PluginSetting@
+        private void ReadPluginSettings(Meta::Plugin@ pluginObject, dictionary@ settingsFromPlugin)
         {
-            m_settingsFromPlugin.DeleteAll();
-            auto pluginSettings = m_plugin.GetSettings();
+            auto pluginSettings = pluginObject.GetSettings();
             for (uint i = 0; i < pluginSettings.Length; i++)
             {
-                if (categories.IsEmpty() || categories.Find(pluginSettings[i].Category) >= 0)
+                if (m_settingCategories.IsEmpty() || m_settingCategories.Find(pluginSettings[i].Category) >= 0)
                 {
-                    @m_settingsFromPlugin[tostring(Hash16(pluginSettings[i].VarName))] = pluginSettings[i];
+                    @settingsFromPlugin[tostring(Hash16(pluginSettings[i].VarName))] = pluginSettings[i];
                 }
             }
         }

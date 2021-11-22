@@ -108,18 +108,18 @@ namespace Test
         Setting_BOOL_Test04 = true;
 
         auto serial1 = Serialization::SettingsInterface();
-        serial1.Initialize(Meta::ExecutingPlugin(), g_testValidation, {"BOOL"});
+        serial1.Initialize(Meta::ExecutingPlugin().ID, g_testValidation, {"BOOL"});
         string binary;
-        Verification::Condition(serial1.WriteCurrentToBinary(binary), "Error writing settings to binary");
+        Verification::Condition(serial1.WriteCurrentToBinary(binary, g_testValidation), "Error writing settings to binary");
 
         Setting_BOOL_Test01 = false;
         Setting_BOOL_Test02 = false;
         Setting_BOOL_Test03 = false;
         Setting_BOOL_Test04 = false;
 
-        serial1.Initialize(Meta::ExecutingPlugin(), g_testValidation);
+        serial1.Initialize(Meta::ExecutingPlugin().ID, g_testValidation);
         Verification::Condition(serial1.ReadAndValidateBinary(binary, g_testValidation), "Error reading binary settings");
-        Verification::Condition(serial1.ApplyBinaryToSettings(), "Error applying settings from binary");
+        Verification::Condition(serial1.ApplyBinaryToSettings(g_testValidation), "Error applying settings from binary");
 
         Verification::AreEqual(true, Setting_BOOL_Test01, "Unexpected value in Setting_BOOL_Test01");
         Verification::AreEqual(true, Setting_BOOL_Test02, "Unexpected value in Setting_BOOL_Test02");
@@ -139,18 +139,18 @@ namespace Test
         Setting_ENUM_Test04 = TestEnum04::VALUE_04;
 
         auto serial1 = Serialization::SettingsInterface();
-        serial1.Initialize(Meta::ExecutingPlugin(), g_testValidation, {"ENUM"});
+        serial1.Initialize(Meta::ExecutingPlugin().ID, g_testValidation, {"ENUM"});
         string binary;
-        Verification::Condition(serial1.WriteCurrentToBinary(binary), "Error writing settings to binary");
+        Verification::Condition(serial1.WriteCurrentToBinary(binary, g_testValidation), "Error writing settings to binary");
 
         Setting_ENUM_Test01 = TestEnum01::VALUE_01;
         Setting_ENUM_Test02 = TestEnum02::VALUE_01;
         Setting_ENUM_Test03 = TestEnum03::VALUE_01;
         Setting_ENUM_Test04 = TestEnum04::VALUE_01;
 
-        serial1.Initialize(Meta::ExecutingPlugin(), g_testValidation);
+        serial1.Initialize(Meta::ExecutingPlugin().ID, g_testValidation);
         Verification::Condition(serial1.ReadAndValidateBinary(binary, g_testValidation), "Error reading binary settings");
-        Verification::Condition(serial1.ApplyBinaryToSettings(), "Error applying settings from binary");
+        Verification::Condition(serial1.ApplyBinaryToSettings(g_testValidation), "Error applying settings from binary");
 
         Verification::AreEqual(TestEnum01::VALUE_03, Setting_ENUM_Test01, "Unexpected value in Setting_ENUM_Test01");
         Verification::AreEqual(TestEnum02::VALUE_09, Setting_ENUM_Test02, "Unexpected value in Setting_ENUM_Test02");
@@ -170,18 +170,18 @@ namespace Test
         Setting_FLOAT_Test04 = 9147480000.0;
 
         auto serial1 = Serialization::SettingsInterface();
-        serial1.Initialize(Meta::ExecutingPlugin(), g_testValidation, {"FLOAT"});
+        serial1.Initialize(Meta::ExecutingPlugin().ID, g_testValidation, {"FLOAT"});
         string binary;
-        Verification::Condition(serial1.WriteCurrentToBinary(binary), "Error writing settings to binary");
+        Verification::Condition(serial1.WriteCurrentToBinary(binary, g_testValidation), "Error writing settings to binary");
 
         Setting_FLOAT_Test01 = 0.0;
         Setting_FLOAT_Test02 = 0.0;
         Setting_FLOAT_Test03 = 0.0;
         Setting_FLOAT_Test04 = 0.0;
 
-        serial1.Initialize(Meta::ExecutingPlugin(), g_testValidation);
+        serial1.Initialize(Meta::ExecutingPlugin().ID, g_testValidation);
         Verification::Condition(serial1.ReadAndValidateBinary(binary, g_testValidation), "Error reading binary settings");
-        Verification::Condition(serial1.ApplyBinaryToSettings(), "Error applying settings from binary");
+        Verification::Condition(serial1.ApplyBinaryToSettings(g_testValidation), "Error applying settings from binary");
 
         Verification::AreEqual(0.0, 5564.2 - Setting_FLOAT_Test01, 0.001, "Unexpected value in Setting_FLOAT_Test01");
         Verification::AreEqual(0.0, -0.659 - Setting_FLOAT_Test02, 0.001, "Unexpected value in Setting_FLOAT_Test02");
@@ -201,9 +201,9 @@ namespace Test
         Setting_INT8_Test04 = -12;
 
         auto serial1 = Serialization::SettingsInterface();
-        serial1.Initialize(Meta::ExecutingPlugin(), g_testValidation, {"INT8"});
+        serial1.Initialize(Meta::ExecutingPlugin().ID, g_testValidation, {"INT8"});
         string binary;
-        Verification::Condition(serial1.WriteCurrentToBinary(binary), "Error writing settings to binary");
+        Verification::Condition(serial1.WriteCurrentToBinary(binary, g_testValidation), "Error writing settings to binary");
 
         Setting_INT8_Test01 = 0;
         Setting_INT8_Test02 = 0;
@@ -211,9 +211,9 @@ namespace Test
         Setting_INT8_Test04 = 0;
 
         auto serial2 = Serialization::SettingsInterface();
-        serial2.Initialize(Meta::ExecutingPlugin(), g_testValidation);
+        serial2.Initialize(Meta::ExecutingPlugin().ID, g_testValidation);
         Verification::Condition(serial2.ReadAndValidateBinary(binary, g_testValidation), "Error reading binary settings");
-        Verification::Condition(serial2.ApplyBinaryToSettings(), "Error applying settings from binary");
+        Verification::Condition(serial2.ApplyBinaryToSettings(g_testValidation), "Error applying settings from binary");
 
         Verification::AreEqual(Serialization::INT8_MAX, Setting_INT8_Test01, "Unexpected value in Setting_INT8_Test01");
         Verification::AreEqual(Serialization::INT8_MIN, Setting_INT8_Test02, "Unexpected value in Setting_INT8_Test02");
@@ -233,18 +233,18 @@ namespace Test
         Setting_INT16_Test04 = -136;
 
         auto serial = Serialization::SettingsInterface();
-        serial.Initialize(Meta::ExecutingPlugin(), g_testValidation, {"INT16"});
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation, {"INT16"});
         string binary;
-        Verification::Condition(serial.WriteCurrentToBinary(binary), "Error writing settings to binary");
+        Verification::Condition(serial.WriteCurrentToBinary(binary, g_testValidation), "Error writing settings to binary");
 
         Setting_INT16_Test01 = -1;
         Setting_INT16_Test02 = -1;
         Setting_INT16_Test03 = -1;
         Setting_INT16_Test04 = -1;
 
-        serial.Initialize(Meta::ExecutingPlugin(), g_testValidation);
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation);
         Verification::Condition(serial.ReadAndValidateBinary(binary, g_testValidation), "Error reading binary settings");
-        Verification::Condition(serial.ApplyBinaryToSettings(), "Error applying settings from binary");
+        Verification::Condition(serial.ApplyBinaryToSettings(g_testValidation), "Error applying settings from binary");
 
         Verification::AreEqual(Serialization::INT8_MAX, Setting_INT16_Test01, "Unexpected value in Setting_INT16_Test01");
         Verification::AreEqual(Serialization::INT16_MIN, Setting_INT16_Test02, "Unexpected value in Setting_INT16_Test02");
@@ -264,18 +264,18 @@ namespace Test
         Setting_INT32_Test04 = -26978;
 
         auto serial = Serialization::SettingsInterface();
-        serial.Initialize(Meta::ExecutingPlugin(), g_testValidation, {"INT32"});
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation, {"INT32"});
         string binary;
-        Verification::Condition(serial.WriteCurrentToBinary(binary), "Error writing settings to binary");
+        Verification::Condition(serial.WriteCurrentToBinary(binary, g_testValidation), "Error writing settings to binary");
 
         Setting_INT32_Test01 = -1;
         Setting_INT32_Test02 = -1;
         Setting_INT32_Test03 = -1;
         Setting_INT32_Test04 = -1;
 
-        serial.Initialize(Meta::ExecutingPlugin(), g_testValidation);
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation);
         Verification::Condition(serial.ReadAndValidateBinary(binary, g_testValidation), "Error reading binary settings");
-        Verification::Condition(serial.ApplyBinaryToSettings(), "Error applying settings from binary");
+        Verification::Condition(serial.ApplyBinaryToSettings(g_testValidation), "Error applying settings from binary");
 
         Verification::AreEqual(Serialization::INT16_MAX, Setting_INT32_Test01, "Unexpected value in Setting_INT32_Test01");
         Verification::AreEqual(Serialization::INT32_MIN, Setting_INT32_Test02, "Unexpected value in Setting_INT32_Test02");
@@ -295,18 +295,18 @@ namespace Test
         Setting_STRING_Test04 = "";
 
         auto serial = Serialization::SettingsInterface();
-        serial.Initialize(Meta::ExecutingPlugin(), g_testValidation, {"STRING"});
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation, {"STRING"});
         string binary;
-        Verification::Condition(serial.WriteCurrentToBinary(binary), "Error writing settings to binary");
+        Verification::Condition(serial.WriteCurrentToBinary(binary, g_testValidation), "Error writing settings to binary");
 
         Setting_STRING_Test01 = "";
         Setting_STRING_Test02 = "";
         Setting_STRING_Test03 = "";
         Setting_STRING_Test04 = "";
 
-        serial.Initialize(Meta::ExecutingPlugin(), g_testValidation);
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation);
         Verification::Condition(serial.ReadAndValidateBinary(binary, g_testValidation), "Error reading binary settings");
-        Verification::Condition(serial.ApplyBinaryToSettings(), "Error applying settings from binary");
+        Verification::Condition(serial.ApplyBinaryToSettings(g_testValidation), "Error applying settings from binary");
 
         Verification::AreEqual("Shor\t\nString", Setting_STRING_Test01, "Unexpected value in Setting_STRING_Test01");
         Verification::AreEqual("LongerStringThanSingleLimit", Setting_STRING_Test02, "Unexpected value in Setting_STRING_Test02");
@@ -326,18 +326,18 @@ namespace Test
         Setting_VEC2_Test04 = vec2(0, 0);
 
         auto serial = Serialization::SettingsInterface();
-        serial.Initialize(Meta::ExecutingPlugin(), g_testValidation, {"VEC2"});
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation, {"VEC2"});
         string binary;
-        Verification::Condition(serial.WriteCurrentToBinary(binary), "Error writing settings to binary");
+        Verification::Condition(serial.WriteCurrentToBinary(binary, g_testValidation), "Error writing settings to binary");
 
         Setting_VEC2_Test01 = vec2(-1, -1);
         Setting_VEC2_Test02 = vec2(-1, -1);
         Setting_VEC2_Test03 = vec2(-1, -1);
         Setting_VEC2_Test04 = vec2(-1, -1);
 
-        serial.Initialize(Meta::ExecutingPlugin(), g_testValidation);
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation);
         Verification::Condition(serial.ReadAndValidateBinary(binary, g_testValidation), "Error reading binary settings");
-        Verification::Condition(serial.ApplyBinaryToSettings(), "Error applying settings from binary");
+        Verification::Condition(serial.ApplyBinaryToSettings(g_testValidation), "Error applying settings from binary");
 
         Verification::AreEqual(vec2(23.0, 65.12), Setting_VEC2_Test01, 0.001, "Unexpected value in Setting_VEC2_Test01");
         Verification::AreEqual(vec2(0.123, 0.566), Setting_VEC2_Test02, 0.001, "Unexpected value in Setting_VEC2_Test02");
@@ -357,18 +357,18 @@ namespace Test
         Setting_VEC3_Test04 = vec3(0, 0, 0);
 
         auto serial = Serialization::SettingsInterface();
-        serial.Initialize(Meta::ExecutingPlugin(), g_testValidation, {"VEC3"});
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation, {"VEC3"});
         string binary;
-        Verification::Condition(serial.WriteCurrentToBinary(binary), "Error writing settings to binary");
+        Verification::Condition(serial.WriteCurrentToBinary(binary, g_testValidation), "Error writing settings to binary");
 
         Setting_VEC3_Test01 = vec3(-1, -1, -1);
         Setting_VEC3_Test02 = vec3(-1, -1, -1);
         Setting_VEC3_Test03 = vec3(-1, -1, -1);
         Setting_VEC3_Test04 = vec3(-1, -1, -1);
 
-        serial.Initialize(Meta::ExecutingPlugin(), g_testValidation);
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation);
         Verification::Condition(serial.ReadAndValidateBinary(binary, g_testValidation), "Error reading binary settings");
-        Verification::Condition(serial.ApplyBinaryToSettings(), "Error applying settings from binary");
+        Verification::Condition(serial.ApplyBinaryToSettings(g_testValidation), "Error applying settings from binary");
 
         Verification::AreEqual(vec3(23.0, 65.12, 156.9), Setting_VEC3_Test01, 0.001, "Unexpected value in Setting_VEC3_Test01");
         Verification::AreEqual(vec3(0.123, -0.566, 0.326), Setting_VEC3_Test02, 0.001, "Unexpected value in Setting_VEC3_Test02");
@@ -388,18 +388,18 @@ namespace Test
         Setting_VEC4_Test04 = vec4(0, 0, 0, 0);
 
         auto serial = Serialization::SettingsInterface();
-        serial.Initialize(Meta::ExecutingPlugin(), g_testValidation, {"VEC4"});
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation, {"VEC4"});
         string binary;
-        Verification::Condition(serial.WriteCurrentToBinary(binary), "Error writing settings to binary");
+        Verification::Condition(serial.WriteCurrentToBinary(binary, g_testValidation), "Error writing settings to binary");
 
         Setting_VEC4_Test01 = vec4(-1, -1, -1, -1);
         Setting_VEC4_Test02 = vec4(-1, -1, -1, -1);
         Setting_VEC4_Test03 = vec4(-1, -1, -1, -1);
         Setting_VEC4_Test04 = vec4(-1, -1, -1, -1);
 
-        serial.Initialize(Meta::ExecutingPlugin(), g_testValidation);
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation);
         Verification::Condition(serial.ReadAndValidateBinary(binary, g_testValidation), "Error reading binary settings");
-        Verification::Condition(serial.ApplyBinaryToSettings(), "Error applying settings from binary");
+        Verification::Condition(serial.ApplyBinaryToSettings(g_testValidation), "Error applying settings from binary");
 
         Verification::AreEqual(vec4(23.0, 65.12, 156.9, 8363.91), Setting_VEC4_Test01, 0.001, "Unexpected value in Setting_VEC4_Test01");
         Verification::AreEqual(vec4(0.123, -0.566, 0.326, -0.399), Setting_VEC4_Test02, 0.001, "Unexpected value in Setting_VEC4_Test02");
