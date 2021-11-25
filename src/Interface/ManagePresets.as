@@ -14,6 +14,9 @@ namespace Interface
 
         ManagePresets()
         {
+#if DEV_MODE
+            m_windowVisible = true;
+#endif
         }
 
         void RenderWindow()
@@ -34,10 +37,18 @@ namespace Interface
                     RenderPresetTab();
                     UI::EndTabItem();
                 }
-                if (m_workingPreset !is null && UI::BeginTabItem("Edit", m_jumpToTabEdit ? UI::TabItemFlags::SetSelected : UI::TabItemFlags::None))
+                bool presetEditTabVisible = m_workingPreset !is null;
+                if (m_workingPreset !is null && UI::BeginTabItem("Edit Preset", presetEditTabVisible, m_jumpToTabEdit ? UI::TabItemFlags::SetSelected : UI::TabItemFlags::None))
                 {
                     m_jumpToTabEdit = false;
-                    RenderPresetEditTab();
+                    if (presetEditTabVisible)
+                    {
+                        RenderPresetEditTab();
+                    }
+                    else
+                    {
+                        @m_workingPreset = null;
+                    }
                     UI::EndTabItem();
                 }
                 UI::EndTabBar();
@@ -120,6 +131,10 @@ namespace Interface
 
         private void RenderPresetTab()
         {
+            Tooltip::Show("See the settings to hide this help.", postfix: "PresetTab_HelpText_Overall");
+            UI::SameLine();
+            UI::TextWrapped(Help::g_PresetCreationHelpText);
+
             if (UI::Button(Icons::Plus + " Create New"))
             {
                 @m_workingPreset = PluginPreset();
@@ -151,10 +166,6 @@ namespace Interface
                         @m_workingPreset = m_presets[i];
                         m_importBinaryString = "";
                         m_jumpToTabEdit = true;
-                        if (m_workingPreset.Valid)
-                        {
-                            m_workingPreset.ApplySettings();
-                        }
                     }
 
                     UI::TableNextColumn();
