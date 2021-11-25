@@ -270,12 +270,21 @@ namespace Interface
 
                 UI::EndTable();
             }
+            UI::EndDisabled();
 
             UI::Separator();
 
             m_workingPreset.RenderPreset();
 
+            Tooltip::Show("Applies this preset to the plugin's settings.");
+            UI::SameLine();
+            UI::BeginDisabled(!m_workingPreset.Valid);
+            if (UI::Button("Apply Preset"))
+            {
+                m_workingPreset.ApplySettings();
+            }
             UI::EndDisabled();
+
         }
 
         void Save()
