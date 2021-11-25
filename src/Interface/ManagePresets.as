@@ -153,10 +153,11 @@ namespace Interface
 
             UI::Separator();
 
-            if (UI::BeginTable("PresetsTabTable", 4 /* col */, UI::TableFlags(UI::TableFlags::NoSavedSettings)))
+            if (UI::BeginTable("PresetsTabTable", 5 /* col */, UI::TableFlags(UI::TableFlags::NoSavedSettings)))
             {
                 UI::TableSetupColumn("##Valid", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 15);
                 UI::TableSetupColumn("##Preset", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
+                UI::TableSetupColumn("##Plugin", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 100);
                 UI::TableSetupColumn("##Edit", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
                 UI::TableSetupColumn("##Delete", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
 
@@ -166,7 +167,10 @@ namespace Interface
                     UI::Text(m_presets[i].Valid ? "\\$0b0" + Icons::Kenney::Check : "\\$b00" + Icons::Kenney::Times);
 
                     UI::TableNextColumn();
-                    UI::Text(m_presets[i].Name + "\\$aaa - " + m_presets[i].PluginName);
+                    UI::Text(m_presets[i].Name);
+
+                    UI::TableNextColumn();
+                    UI::Text("\\$aaa" + m_presets[i].PluginName);
 
                     UI::TableNextColumn();
                     if (UI::Button(Icons::PencilSquareO + "##PresetsTabTable.Edit." + tostring(i)))
