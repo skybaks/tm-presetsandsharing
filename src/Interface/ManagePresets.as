@@ -145,7 +145,7 @@ namespace Interface
 
             if (UI::Button(Icons::Plus + " Create New"))
             {
-                @m_workingPreset = PluginPreset();
+                @m_workingPreset = PluginPreset(m_presets);
                 m_presets.InsertLast(m_workingPreset);
                 m_importBinaryString = "";
                 m_jumpToTabEdit = true;

@@ -3,11 +3,14 @@ namespace Interface
 {
     class PluginPreset
     {
+        private int m_id;
         private string m_binary;
         private string m_name;
         private string m_pluginId;
         private Serialization::SettingsInterface m_serializer;
         private Serialization::SettingsSerializationValidation m_validation;
+
+        int PresetID { get { return m_id; } }
 
         string Name
         {
@@ -78,6 +81,12 @@ namespace Interface
 
         PluginPreset()
         {
+            m_id = -1;
+        }
+
+        PluginPreset(const PluginPreset@[]@ existingPresets)
+        {
+            m_id = GetNewPresetID(existingPresets);
         }
 
         int opCmp(PluginPreset@ other)
@@ -101,6 +110,7 @@ namespace Interface
 
         void Load(Json::Value object)
         {
+            m_id = object["PresetID"];
             Name = object["Name"];
             PluginID = object["PluginID"];
             Binary = object["Binary"];
@@ -109,6 +119,7 @@ namespace Interface
         Json::Value Save()
         {
             auto object = Json::Object();
+            object["PresetID"] = m_id;
             object["Name"] = Name;
             object["PluginID"] = PluginID;
             object["Binary"] = Binary;
@@ -119,5 +130,24 @@ namespace Interface
         {
             m_validation.RenderValidationStatus();
         }
+    }
+
+    int GetNewPresetID(const PluginPreset@[]@ existingPresets)
+    {
+        int newId = 0;
+        while (newId < Serialization::INT32_MAX)
+        {
+            bool exists = false;
+
+            for (uint i = 0; i < existingPresets.Length; i++)
+            {
+                if (existingPresets[i].PresetID == newId) { exists = true; break; }
+            }
+
+            if (!exists) { break; }
+
+            newId++;
+        }
+        return newId;
     }
 }
