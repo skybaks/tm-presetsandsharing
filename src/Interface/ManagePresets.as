@@ -23,7 +23,7 @@ namespace Interface
         {
             if (m_windowVisible)
             {
-                UI::SetNextWindowSize(500, 400, UI::Cond::Once);
+                UI::SetNextWindowSize(500, 600, UI::Cond::Once);
                 UI::Begin(m_windowName, m_windowVisible);
 
                 if (!m_windowVisible)
@@ -38,18 +38,22 @@ namespace Interface
                     UI::EndTabItem();
                 }
                 bool presetEditTabVisible = m_workingPreset !is null;
-                if (m_workingPreset !is null && UI::BeginTabItem("Edit Preset", presetEditTabVisible, m_jumpToTabEdit ? UI::TabItemFlags::SetSelected : UI::TabItemFlags::None))
+                if (m_workingPreset !is null)
                 {
-                    m_jumpToTabEdit = false;
-                    if (presetEditTabVisible)
+                    if (UI::BeginTabItem("Edit Preset", presetEditTabVisible, m_jumpToTabEdit ? UI::TabItemFlags::SetSelected : UI::TabItemFlags::None))
                     {
-                        RenderPresetEditTab();
+                        m_jumpToTabEdit = false;
+                        if (presetEditTabVisible)
+                        {
+                            RenderPresetEditTab();
+                        }
+                        UI::EndTabItem();
                     }
-                    else
+
+                    if (!presetEditTabVisible)
                     {
                         @m_workingPreset = null;
                     }
-                    UI::EndTabItem();
                 }
                 UI::EndTabBar();
 
@@ -131,9 +135,13 @@ namespace Interface
 
         private void RenderPresetTab()
         {
-            Tooltip::Show("See the settings to hide this help.", postfix: "PresetTab_HelpText_Overall");
-            UI::SameLine();
-            UI::TextWrapped(Help::g_PresetCreationHelpText);
+            if (!Setting_General_HideVerboseHelp)
+            {
+                Tooltip::Show(Help::g_verboseHelpTooltip, postfix: "PresetTab_HelpText_Overall");
+                UI::SameLine();
+                UI::TextWrapped(Help::g_PresetCreationHelpText);
+                UI::Separator();
+            }
 
             if (UI::Button(Icons::Plus + " Create New"))
             {
@@ -188,6 +196,14 @@ namespace Interface
 
         private void RenderPresetEditTab()
         {
+            if (!Setting_General_HideVerboseHelp)
+            {
+                Tooltip::Show(Help::g_verboseHelpTooltip, postfix: "PresetEditTab_HelpText_Overall");
+                UI::SameLine();
+                UI::TextWrapped(Help::g_PresetEditHelpText);
+                UI::Separator();
+            }
+
             UI::BeginDisabled(m_workingPreset.PluginID != "");
 
             auto plugins = Meta::AllPlugins();
