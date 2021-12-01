@@ -2,7 +2,10 @@
 
 void Main()
 {
+    Test::Verification::SetSingleTest("");
+
     try { Test::Test_GenericTestbed(); } catch { error("Test Failed: " + Test::Verification::g_CurrTestName); }
+
     try { Test::Test_BoolSettings(); } catch { error("Test Failed: " + Test::Verification::g_CurrTestName); }
     try { Test::Test_EnumSettings(); } catch { error("Test Failed: " + Test::Verification::g_CurrTestName); }
     try { Test::Test_FloatSettings(); } catch { error("Test Failed: " + Test::Verification::g_CurrTestName); }
@@ -13,6 +16,9 @@ void Main()
     try { Test::Test_Vec2Settings(); } catch { error("Test Failed: " + Test::Verification::g_CurrTestName); }
     try { Test::Test_Vec3Settings(); } catch { error("Test Failed: " + Test::Verification::g_CurrTestName); }
     try { Test::Test_Vec4Settings(); } catch { error("Test Failed: " + Test::Verification::g_CurrTestName); }
+
+    try { Test::Test_PresetDashboard(); } catch { error("Test Failed: " + Test::Verification::g_CurrTestName); }
+    try { Test::Test_PresetTmxMenu(); } catch { error("Test Failed: " + Test::Verification::g_CurrTestName); }
 }
 
 #endif

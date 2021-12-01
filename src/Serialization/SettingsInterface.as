@@ -155,6 +155,9 @@ namespace Serialization
                     @settingsFromPlugin[tostring(Hash16(pluginSettings[i].VarName))] = pluginSettings[i];
                 }
             }
+#if VERBOSE_SERIALIZATION
+            trace("SettingsInterface::ReadPluginSettings - dict:" + tostring(settingsFromPlugin.GetSize()) + " api:" + tostring(pluginSettings.Length));
+#endif
         }
     }
 }

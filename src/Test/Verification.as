@@ -6,9 +6,20 @@ namespace Test
     {
         uint g_AssertsFailed = 0;
         string g_CurrTestName = "";
+        string g_RunSingleTestName = "";
+
+        void SetSingleTest(const string&in testName)
+        {
+            g_RunSingleTestName = testName;
+        }
 
         void TestBegin(const string&in testName)
         {
+            if (g_RunSingleTestName != "" && testName != g_RunSingleTestName)
+            {
+                throw("Skipped");
+            }
+
             g_AssertsFailed = 0;
             g_CurrTestName = testName;
         }

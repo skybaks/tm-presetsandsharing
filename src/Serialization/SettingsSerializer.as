@@ -12,6 +12,9 @@ namespace Serialization
         // Dictionary Format: string, Serialization::SettingsDataItem@
         bool ReadFromBinary(const string&in inputBase64String, uint8&out pluginIdResult, dictionary@ settingsResult, Serialization::SettingsSerializationValidation@ validation)
         {
+#if VERBOSE_SERIALIZATION
+            trace("SettingsSerializer::ReadFromBinary - " + inputBase64String);
+#endif
             try
             {
                 m_buffer.Resize(0);
@@ -33,6 +36,9 @@ namespace Serialization
                     uint16 settingId = m_buffer.ReadUInt16();
                     uint8 settingByte2 = m_buffer.ReadUInt8();
                     Meta::PluginSettingType settingType = Meta::PluginSettingType((settingByte2 & 0xF0) >> 4);
+#if VERBOSE_SERIALIZATION
+                    trace("SettingsSerializer::ReadFromBinary - settingsRead=" + tostring(settingsRead) + " settingType=" + tostring(settingType));
+#endif
                     string stringifiedValue = "";
                     if (settingType == Meta::PluginSettingType::Bool)
                     {
@@ -94,10 +100,16 @@ namespace Serialization
                     else if (settingType == Meta::PluginSettingType::String)
                     {
                         uint64 stringLen = settingByte2 & 0x0F;
+#if VERBOSE_SERIALIZATION
+                    trace("SettingsSerializer::ReadFromBinary - stringLen=" + tostring(stringLen));
+#endif
                         if (stringLen == 15)
                         {
                             uint additionalStringLen = m_buffer.ReadUInt32();
                             stringLen += additionalStringLen;
+#if VERBOSE_SERIALIZATION
+                    trace("SettingsSerializer::ReadFromBinary - additionalStringLen=" + tostring(additionalStringLen) + " stringLen=" + tostring(stringLen));
+#endif
                         }
                         stringifiedValue = m_buffer.ReadString(stringLen);
                     }
@@ -143,6 +155,9 @@ namespace Serialization
                     }
                     else
                     {
+#if VERBOSE_SERIALIZATION
+                        trace("SettingsSerializer::ReadFromBinary - Unknown setting type " + tostring(settingType));
+#endif
                         validation.ValidSettingTypes = false;
                         return false;
                     }
@@ -156,9 +171,15 @@ namespace Serialization
             }
             catch
             {
+#if VERBOSE_SERIALIZATION
+                trace("SettingsSerializer::ReadFromBinary - An Exception occurred");
+#endif
                 validation.ValidBinaryDeserialization = false;
                 return false;
             }
+#if VERBOSE_SERIALIZATION
+            trace("SettingsSerializer::ReadFromBinary - Success");
+#endif
             validation.ValidBinaryDeserialization = true;
             return true;
         }
@@ -170,6 +191,9 @@ namespace Serialization
             m_buffer.Resize(0);
 
             const uint8 SERIALIZER_VERSION = 0;
+#if VERBOSE_SERIALIZATION
+            trace("SettingsSerializer::WriteToBinary - SERIALIZER_VERSION=" + tostring(SERIALIZER_VERSION));
+#endif
 
             m_buffer.Write(uint8(((SERIALIZER_VERSION & 0x0F) << 4) | (0 & 0x0F)));
             m_buffer.Write(uint8(inputSettings.GetSize()));
@@ -181,6 +205,10 @@ namespace Serialization
                 m_buffer.Write(uint16(Text::ParseUInt(keys[i])));
                 Meta::PluginSetting@ pluginSetting = cast<Meta::PluginSetting>(inputSettings[keys[i]]);
                 uint8 settingType = 0x0F & uint8(pluginSetting.Type);
+
+#if VERBOSE_SERIALIZATION
+            trace("SettingsSerializer::WriteToBinary - i=" + tostring(i) + " pluginSetting.Type=" + tostring(pluginSetting.Type));
+#endif
 
                 if (pluginSetting.Type == Meta::PluginSettingType::Bool)
                 {
@@ -263,7 +291,9 @@ namespace Serialization
                     }
                     else
                     {
+#if VERBOSE_SERIALIZATION
                         error("ERROR: Unable to serialize float setting \"" + pluginSetting.VarName + "\". Unable to determine packing");
+#endif
                     }
                 }
                 else if (pluginSetting.Type == Meta::PluginSettingType::String)
@@ -274,8 +304,12 @@ namespace Serialization
                     settingValue = settingValue.SubStr(0, stringLengthTotal);
                     uint stringLengthPart1 = uint64(15) < stringLengthTotal ? uint64(15) : stringLengthTotal;
                     uint stringLengthPart2 = 0 < (stringLengthTotal - stringLengthPart1) ? (stringLengthTotal - stringLengthPart1) : 0;
+
+#if VERBOSE_SERIALIZATION
+            trace("SettingsSerializer::WriteToBinary - stringLengthTotal=" + tostring(stringLengthTotal) + " stringLengthPart1=" + tostring(stringLengthPart1) + " stringLengthPart2=" + tostring(stringLengthPart2));
+#endif
                     m_buffer.Write(uint8((settingType << 4) | (0x0F & stringLengthPart1)));
-                    if (stringLengthPart2 > 0)
+                    if (stringLengthPart1 == 15)
                     {
                         m_buffer.Write(uint(stringLengthPart2));
                     }
@@ -303,7 +337,9 @@ namespace Serialization
                     }
                     else
                     {
+#if VERBOSE_SERIALIZATION
                         error("ERROR: Unable to serialize vec2 setting \"" + pluginSetting.VarName + "\". Unable to determine packing");
+#endif
                     }
                 }
                 else if (pluginSetting.Type == Meta::PluginSettingType::Vec3)
@@ -333,7 +369,9 @@ namespace Serialization
                     }
                     else
                     {
+#if VERBOSE_SERIALIZATION
                         error("ERROR: Unable to serialize vec3 setting \"" + pluginSetting.VarName + "\". Unable to determine packing");
+#endif
                     }
                 }
                 else if (pluginSetting.Type == Meta::PluginSettingType::Vec4)
@@ -369,12 +407,16 @@ namespace Serialization
                     }
                     else
                     {
+#if VERBOSE_SERIALIZATION
                         error("ERROR: Unable to serialize vec4 setting \"" + pluginSetting.VarName + "\". Unable to determine packing");
+#endif
                     }
                 }
                 else
                 {
+#if VERBOSE_SERIALIZATION
                     error("ERROR: Unexpected Setting Type");
+#endif
                 }
             }
 
@@ -387,6 +429,9 @@ namespace Serialization
                 resultBase64String = m_buffer.ReadToBase64(m_buffer.GetSize());
                 success = true;
             }
+#if VERBOSE_SERIALIZATION
+            trace("SettingsSerializer::WriteToBinary - Returning->" + tostring(success));
+#endif
             return success;
         }
 
