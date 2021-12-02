@@ -36,13 +36,10 @@ namespace Interface
             }
             set
             {
-                if (m_serializer.ReadAndValidateBinary(value, m_validation))
+                if (m_binary != value)
                 {
                     m_binary = value;
-                }
-                else
-                {
-                    m_binary = "";
+                    m_serializer.ReadAndValidateBinary(value, m_validation);
                 }
             }
         }
@@ -67,7 +64,7 @@ namespace Interface
         {
             get
             {
-                return Meta::GetPluginFromID(PluginID) !is null ? Meta::GetPluginFromID(PluginID).Name : "";
+                return Meta::GetPluginFromID(PluginID) !is null ? Meta::GetPluginFromID(PluginID).Name : PluginID;
             }
         }
 
