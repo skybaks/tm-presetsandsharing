@@ -7,9 +7,7 @@ namespace Interface
         private bool m_windowVisible = false;
         private string m_menuName = "\\$9cf" + Icons::Sliders + "\\$fff Presets";
         private string m_windowName = Icons::Sliders + " Manage Presets And Loadouts";
-        private PluginPreset@[] m_presets;
         private PluginPreset@ m_workingPreset = null;
-        private PresetLoadout@[] m_loadouts;
         private PresetLoadout@ m_workingLoadout = null;
         private bool m_jumpToTabPresetEdit = false;
         private bool m_jumpToTabLoadoutEdit = false;
@@ -119,14 +117,14 @@ namespace Interface
         private int RenderPresetMenuUncategorized()
         {
             int presetsShown = 0;
-            for (uint i = 0; i < m_presets.Length; i++)
+            for (uint i = 0; i < g_presets.Length; i++)
             {
-                if (m_presets[i].Valid)
+                if (g_presets[i].Valid)
                 {
                     presetsShown++;
-                    if (UI::MenuItem(m_presets[i].Name + "##PresetMenuItem." + tostring(i)))
+                    if (UI::MenuItem(g_presets[i].Name + "##PresetMenuItem." + tostring(i)))
                     {
-                        m_presets[i].ApplySettings();
+                        g_presets[i].ApplySettings();
                     }
                 }
             }
@@ -137,20 +135,20 @@ namespace Interface
         {
             int presetsShown = 0;
             string currPluginId = "";
-            for (uint i = 0; i < m_presets.Length; i++)
+            for (uint i = 0; i < g_presets.Length; i++)
             {
-                if (m_presets[i].Valid)
+                if (g_presets[i].Valid)
                 {
-                    if (m_presets[i].PluginName != currPluginId)
+                    if (g_presets[i].PluginName != currPluginId)
                     {
-                        currPluginId = m_presets[i].PluginName;
+                        currPluginId = g_presets[i].PluginName;
                         UI::Separator();
                         UI::MenuItem(Icons::Sliders + " " + currPluginId + "##PluginHeader", enabled:false);
                     }
                     presetsShown++;
-                    if (UI::MenuItem(m_presets[i].Name + "##PresetMenuItem." + tostring(i)))
+                    if (UI::MenuItem(g_presets[i].Name + "##PresetMenuItem." + tostring(i)))
                     {
-                        m_presets[i].ApplySettings();
+                        g_presets[i].ApplySettings();
                     }
                 }
             }
@@ -169,11 +167,12 @@ namespace Interface
 
             if (UI::Button(Icons::Plus + " Create New##RenderLoadoutTab.NewLoadout"))
             {
-                @m_workingLoadout = PresetLoadout(m_loadouts);
-                m_workingLoadout.Initialize(m_presets);
-                m_loadouts.InsertLast(m_workingLoadout);
+                @m_workingLoadout = PresetLoadout();
+                g_loadouts.InsertLast(m_workingLoadout);
                 m_jumpToTabLoadoutEdit = true;
             }
+
+            UI::Text("\\$f00TODO: Loadout table goes here");
         }
 
         private void RenderLoadoutEditTab()
@@ -199,8 +198,8 @@ namespace Interface
 
             if (UI::Button(Icons::Plus + " Create New##RenderPresetTab.NewPreset"))
             {
-                @m_workingPreset = PluginPreset(m_presets);
-                m_presets.InsertLast(m_workingPreset);
+                @m_workingPreset = PluginPreset();
+                g_presets.InsertLast(m_workingPreset);
                 m_importBinaryString = "";
                 m_jumpToTabPresetEdit = true;
             }
@@ -215,21 +214,21 @@ namespace Interface
                 UI::TableSetupColumn("##Delete", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
                 UI::TableHeadersRow();
 
-                for (uint i = 0; i < m_presets.Length; i++)
+                for (uint i = 0; i < g_presets.Length; i++)
                 {
                     UI::TableNextColumn();
-                    UI::Text(m_presets[i].Valid ? "\\$0b0" + Icons::Kenney::Check : "\\$b00" + Icons::Kenney::Times);
+                    UI::Text(g_presets[i].Valid ? "\\$0b0" + Icons::Kenney::Check : "\\$b00" + Icons::Kenney::Times);
 
                     UI::TableNextColumn();
-                    UI::Text(m_presets[i].Name);
+                    UI::Text(g_presets[i].Name);
 
                     UI::TableNextColumn();
-                    UI::Text("\\$aaa" + m_presets[i].PluginName);
+                    UI::Text("\\$aaa" + g_presets[i].PluginName);
 
                     UI::TableNextColumn();
                     if (UI::Button(Icons::PencilSquareO + "##PresetsTabTable.Edit." + tostring(i)))
                     {
-                        @m_workingPreset = m_presets[i];
+                        @m_workingPreset = g_presets[i];
                         m_importBinaryString = "";
                         m_jumpToTabPresetEdit = true;
                     }
@@ -237,13 +236,13 @@ namespace Interface
                     UI::TableNextColumn();
                     if (UI::Button(Icons::Trash + "##PresetsTabTable.Delete." + tostring(i)))
                     {
-                        if (m_presets[i] is m_workingPreset)
+                        if (g_presets[i] is m_workingPreset)
                         {
                             @m_workingPreset = null;
                             m_importBinaryString = "";
                         }
-                        m_presets.RemoveAt(i);
-                        m_presets.SortAsc();
+                        g_presets.RemoveAt(i);
+                        g_presets.SortAsc();
                     }
 
                     UI::TableNextRow();
@@ -277,7 +276,7 @@ namespace Interface
                         if (UI::Selectable(plugins[i].Name + "##Plugin.ID." + tostring(i), false))
                         {
                             m_workingPreset.PluginID = plugins[i].ID;
-                            m_presets.SortAsc();
+                            g_presets.SortAsc();
                         }
                     }
                 }
@@ -354,14 +353,14 @@ namespace Interface
             value["Settings"] = "PresetsAndSharing";
             value["Version"] = Meta::ExecutingPlugin().Version;
             value["Presets"] = Json::Array();
-            for (uint i = 0; i < m_presets.Length; i++)
+            for (uint i = 0; i < g_presets.Length; i++)
             {
-                value["Presets"].Add(m_presets[i].Save());
+                value["Presets"].Add(g_presets[i].Save());
             }
             value["Loadouts"] = Json::Array();
-            for (uint i = 0; i < m_loadouts.Length; i++)
+            for (uint i = 0; i < g_loadouts.Length; i++)
             {
-                value["Loadouts"].Add(m_loadouts[i].Save());
+                value["Loadouts"].Add(g_loadouts[i].Save());
             }
             Json::ToFile(IO::FromDataFolder("PresetsAndSharing.json"), value);
         }
@@ -376,19 +375,20 @@ namespace Interface
                     && value.HasKey("Presets")
                     && value.HasKey("Loadouts"))
                 {
+                    while (g_presets.Length > 0) { g_presets.RemoveAt(0); }
                     for (uint i = 0; i < value["Presets"].Length; i++)
                     {
                         auto newPreset = PluginPreset();
                         newPreset.Load(value["Presets"][i]);
-                        m_presets.InsertLast(newPreset);
+                        g_presets.InsertLast(newPreset);
                     }
 
+                    while (g_loadouts.Length > 0) { g_loadouts.RemoveAt(0); }
                     for (uint i = 0; i < value["Loadouts"].Length; i++)
                     {
                         auto newLoadout = PresetLoadout();
                         newLoadout.Load(value["Loadouts"][i]);
-                        newLoadout.Initialize(m_presets);
-                        m_loadouts.InsertLast(newLoadout);
+                        g_loadouts.InsertLast(newLoadout);
                     }
                 }
             }

@@ -6,7 +6,6 @@ namespace Interface
         private int m_id;
         private string m_name;
         private int[] m_presetIds;
-        private PluginPreset@[]@ m_allPresets;
 
         int LoadoutID { get { return m_id; } }
 
@@ -29,17 +28,7 @@ namespace Interface
 
         PresetLoadout()
         {
-            m_id = -1;
-        }
-
-        PresetLoadout(const PresetLoadout@[]@ existingLoadouts)
-        {
-            m_id = GetNewLoadoutID(existingLoadouts);
-        }
-
-        void Initialize(PluginPreset@[]@ allPresets)
-        {
-            @m_allPresets = allPresets;
+            m_id = GetNewLoadoutID();
         }
 
         void AddPresetID(const int id)
@@ -92,15 +81,15 @@ namespace Interface
         }
     }
 
-    int GetNewLoadoutID(const PresetLoadout@[]@ existingLoadouts)
+    int GetNewLoadoutID()
     {
         int newId = 0;
         while (newId < Serialization::INT32_MAX)
         {
             bool exists = false;
-            for (uint i = 0; i < existingLoadouts.Length; i++)
+            for (uint i = 0; i < g_loadouts.Length; i++)
             {
-                if (existingLoadouts[i].LoadoutID == newId) { exists = true; break; }
+                if (g_loadouts[i].LoadoutID == newId) { exists = true; break; }
             }
             if (!exists) { break; }
             newId++;

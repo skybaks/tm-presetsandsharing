@@ -78,12 +78,7 @@ namespace Interface
 
         PluginPreset()
         {
-            m_id = -1;
-        }
-
-        PluginPreset(const PluginPreset@[]@ existingPresets)
-        {
-            m_id = GetNewPresetID(existingPresets);
+            m_id = GetNewPresetID();
         }
 
         int opCmp(PluginPreset@ other)
@@ -129,20 +124,17 @@ namespace Interface
         }
     }
 
-    int GetNewPresetID(const PluginPreset@[]@ existingPresets)
+    int GetNewPresetID()
     {
         int newId = 0;
         while (newId < Serialization::INT32_MAX)
         {
             bool exists = false;
-
-            for (uint i = 0; i < existingPresets.Length; i++)
+            for (uint i = 0; i < g_presets.Length; i++)
             {
-                if (existingPresets[i].PresetID == newId) { exists = true; break; }
+                if (g_presets[i].PresetID == newId) { exists = true; break; }
             }
-
             if (!exists) { break; }
-
             newId++;
         }
         return newId;

@@ -1,6 +1,8 @@
 #if !UNIT_TEST
 
 Interface::ManagePresets@ g_interface;
+Interface::PluginPreset@[] g_presets;
+Interface::PresetLoadout@[] g_loadouts;
 
 void RenderMenu()
 {
