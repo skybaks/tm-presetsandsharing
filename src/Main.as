@@ -1,28 +1,30 @@
 #if !UNIT_TEST
 
-Interface::ManagePresets m_interface;
+Interface::ManagePresets@ g_interface;
 
 void RenderMenu()
 {
-    if (m_interface !is null)
+    if (g_interface !is null)
     {
-        m_interface.RenderMenu();
+        g_interface.RenderMenu();
     }
 }
 
 void RenderInterface()
 {
-    if (m_interface !is null)
+    if (g_interface !is null)
     {
-        m_interface.RenderWindow();
+        g_interface.RenderWindow();
     }
 }
 
 void Main()
 {
-    if (m_interface !is null)
+    @g_interface = Interface::ManagePresets();
+
+    if (g_interface !is null)
     {
-        m_interface.Load();
+        g_interface.Load();
     }
 
     int dt = 0;

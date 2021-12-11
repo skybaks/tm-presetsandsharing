@@ -6,10 +6,13 @@ namespace Interface
     {
         private bool m_windowVisible = false;
         private string m_menuName = "\\$9cf" + Icons::Sliders + "\\$fff Presets";
-        private string m_windowName = Icons::Sliders + " Manage Presets";
+        private string m_windowName = Icons::Sliders + " Manage Presets And Loadouts";
         private PluginPreset@[] m_presets;
         private PluginPreset@ m_workingPreset = null;
-        private bool m_jumpToTabEdit = false;
+        private PresetLoadout@[] m_loadouts;
+        private PresetLoadout@ m_workingLoadout = null;
+        private bool m_jumpToTabPresetEdit = false;
+        private bool m_jumpToTabLoadoutEdit = false;
         private string m_importBinaryString = "";
 
         ManagePresets()
@@ -32,24 +35,45 @@ namespace Interface
                 }
 
                 UI::BeginTabBar("##OverallTabBar.ManagePresets.RenderWindow");
+                if (UI::BeginTabItem("Loadouts"))
+                {
+                    RenderLoadoutTab();
+                    UI::EndTabItem();
+                }
                 if (UI::BeginTabItem("Presets"))
                 {
                     RenderPresetTab();
                     UI::EndTabItem();
                 }
+                bool loadoutEditTabVisible = m_workingLoadout !is null;
+                if (m_workingLoadout !is null)
+                {
+                    if (UI::BeginTabItem("Edit Loadout", loadoutEditTabVisible, m_jumpToTabLoadoutEdit ? UI::TabItemFlags::SetSelected : UI::TabItemFlags::None))
+                    {
+                        m_jumpToTabLoadoutEdit = false;
+                        if (loadoutEditTabVisible)
+                        {
+                            RenderLoadoutEditTab();
+                        }
+                        UI::EndTabItem();
+                    }
+                    if (!loadoutEditTabVisible)
+                    {
+                        @m_workingLoadout = null;
+                    }
+                }
                 bool presetEditTabVisible = m_workingPreset !is null;
                 if (m_workingPreset !is null)
                 {
-                    if (UI::BeginTabItem("Edit Preset", presetEditTabVisible, m_jumpToTabEdit ? UI::TabItemFlags::SetSelected : UI::TabItemFlags::None))
+                    if (UI::BeginTabItem("Edit Preset", presetEditTabVisible, m_jumpToTabPresetEdit ? UI::TabItemFlags::SetSelected : UI::TabItemFlags::None))
                     {
-                        m_jumpToTabEdit = false;
+                        m_jumpToTabPresetEdit = false;
                         if (presetEditTabVisible)
                         {
                             RenderPresetEditTab();
                         }
                         UI::EndTabItem();
                     }
-
                     if (!presetEditTabVisible)
                     {
                         @m_workingPreset = null;
@@ -133,6 +157,36 @@ namespace Interface
             return presetsShown;
         }
 
+        private void RenderLoadoutTab()
+        {
+            if (!Setting_General_HideVerboseHelp)
+            {
+                Tooltip::Show(Help::g_verboseHelpTooltip, postfix: "LoadoutTab_HelpText_Overall");
+                UI::SameLine();
+                UI::TextWrapped(Help::g_LoadoutCreationHelpText);
+                UI::Separator();
+            }
+
+            if (UI::Button(Icons::Plus + " Create New##RenderLoadoutTab.NewLoadout"))
+            {
+                @m_workingLoadout = PresetLoadout(m_loadouts);
+                m_workingLoadout.Initialize(m_presets);
+                m_loadouts.InsertLast(m_workingLoadout);
+                m_jumpToTabLoadoutEdit = true;
+            }
+        }
+
+        private void RenderLoadoutEditTab()
+        {
+            if (!Setting_General_HideVerboseHelp)
+            {
+                Tooltip::Show(Help::g_verboseHelpTooltip, postfix: "LoadoutEditTab_HelpText_Overall");
+                UI::SameLine();
+                UI::TextWrapped(Help::g_LoadoutEditHelpText);
+                UI::Separator();
+            }
+        }
+
         private void RenderPresetTab()
         {
             if (!Setting_General_HideVerboseHelp)
@@ -143,23 +197,23 @@ namespace Interface
                 UI::Separator();
             }
 
-            if (UI::Button(Icons::Plus + " Create New"))
+            if (UI::Button(Icons::Plus + " Create New##RenderPresetTab.NewPreset"))
             {
                 @m_workingPreset = PluginPreset(m_presets);
                 m_presets.InsertLast(m_workingPreset);
                 m_importBinaryString = "";
-                m_jumpToTabEdit = true;
+                m_jumpToTabPresetEdit = true;
             }
 
-            UI::Separator();
-
-            if (UI::BeginTable("PresetsTabTable", 5 /* col */, UI::TableFlags(UI::TableFlags::NoSavedSettings | UI::TableFlags::ScrollY)))
+            UI::PushStyleColor(UI::Col::TableRowBgAlt, vec4(0.0, 0.0, 0.0, 0.3));
+            if (UI::BeginTable("PresetsTabTable", 5 /* col */, UI::TableFlags(UI::TableFlags::NoSavedSettings | UI::TableFlags::ScrollY | UI::TableFlags::RowBg)))
             {
                 UI::TableSetupColumn("##Valid", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 15);
-                UI::TableSetupColumn("##Preset", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
-                UI::TableSetupColumn("##Plugin", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 100);
+                UI::TableSetupColumn("Preset##Preset", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
+                UI::TableSetupColumn("Plugin##Plugin", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 100);
                 UI::TableSetupColumn("##Edit", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
                 UI::TableSetupColumn("##Delete", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
+                UI::TableHeadersRow();
 
                 for (uint i = 0; i < m_presets.Length; i++)
                 {
@@ -177,7 +231,7 @@ namespace Interface
                     {
                         @m_workingPreset = m_presets[i];
                         m_importBinaryString = "";
-                        m_jumpToTabEdit = true;
+                        m_jumpToTabPresetEdit = true;
                     }
 
                     UI::TableNextColumn();
@@ -196,6 +250,7 @@ namespace Interface
                 }
                 UI::EndTable();
             }
+            UI::PopStyleColor();
         }
 
         private void RenderPresetEditTab()
@@ -303,6 +358,11 @@ namespace Interface
             {
                 value["Presets"].Add(m_presets[i].Save());
             }
+            value["Loadouts"] = Json::Array();
+            for (uint i = 0; i < m_loadouts.Length; i++)
+            {
+                value["Loadouts"].Add(m_loadouts[i].Save());
+            }
             Json::ToFile(IO::FromDataFolder("PresetsAndSharing.json"), value);
         }
 
@@ -313,13 +373,22 @@ namespace Interface
                 auto value = Json::FromFile(IO::FromDataFolder("PresetsAndSharing.json"));
                 if (value.HasKey("Settings")
                     && string(value["Settings"]) == "PresetsAndSharing"
-                    && value.HasKey("Presets"))
+                    && value.HasKey("Presets")
+                    && value.HasKey("Loadouts"))
                 {
                     for (uint i = 0; i < value["Presets"].Length; i++)
                     {
                         auto newPreset = PluginPreset();
                         newPreset.Load(value["Presets"][i]);
                         m_presets.InsertLast(newPreset);
+                    }
+
+                    for (uint i = 0; i < value["Loadouts"].Length; i++)
+                    {
+                        auto newLoadout = PresetLoadout();
+                        newLoadout.Load(value["Loadouts"][i]);
+                        newLoadout.Initialize(m_presets);
+                        m_loadouts.InsertLast(newLoadout);
                     }
                 }
             }

@@ -19,5 +19,15 @@ Finally, create the preset from the selected plugin's current settings using \$9
 
 Once all the validation items display green checkmarks then your preset is ready for use.""";
 
+        const string g_LoadoutCreationHelpText = 
+"""\$fffA Loadout contains one or more plugin presets. They can be used to easily activate multiple presets together.
+
+Select \$9cfCreate New\$fff to get started.""";
+
+        const string g_LoadoutEditHelpText =
+"""\$fffTo create your loadout...
+TODO: Finish this help section
+""";
+
     }
 }
