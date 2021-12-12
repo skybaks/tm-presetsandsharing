@@ -55,6 +55,14 @@ namespace Interface
 
         void ActivatePresets()
         {
+            for (uint i = 0; i < m_presetIds.Length; i++)
+            {
+                PluginPreset@ preset = GetPresetFromID(m_presetIds[i]);
+                if (preset !is null)
+                {
+                    preset.ApplySettings();
+                }
+            }
         }
 
         void Load(Json::Value object)

@@ -6,7 +6,7 @@ namespace Interface
     {
         private bool m_windowVisible = false;
         private string m_menuName = "\\$9cf" + Icons::Sliders + "\\$fff Presets";
-        private string m_windowName = Icons::Sliders + " Manage Presets And Loadouts";
+        private string m_windowName = Icons::Sliders + " Manage Presets";
         private PluginPreset@ m_workingPreset = null;
         private PresetLoadout@ m_workingLoadout = null;
         private bool m_jumpToTabPresetEdit = false;
@@ -172,7 +172,45 @@ namespace Interface
                 m_jumpToTabLoadoutEdit = true;
             }
 
-            UI::Text("\\$f00TODO: Loadout table goes here");
+            UI::PushStyleColor(UI::Col::TableRowBgAlt, vec4(0.0, 0.0, 0.0, 0.3));
+            if (UI::BeginTable("LoadoutsTabTable", 4 /* col */, UI::TableFlags(UI::TableFlags::NoSavedSettings | UI::TableFlags::ScrollY | UI::TableFlags::RowBg)))
+            {
+                UI::TableSetupScrollFreeze(0, 1);
+                UI::TableSetupColumn("##Valid", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 15);
+                UI::TableSetupColumn("Loadout##Loadout", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
+                UI::TableSetupColumn("##Edit", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
+                UI::TableSetupColumn("##Delete", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
+                UI::TableHeadersRow();
+
+                for (uint i = 0; i < g_loadouts.Length; i++)
+                {
+                    UI::TableNextColumn();
+                    UI::Text("");
+
+                    UI::TableNextColumn();
+                    UI::Text(g_loadouts[i].Name);
+
+                    UI::TableNextColumn();
+                    if (UI::Button(Icons::PencilSquareO + "##LoadoutsTabTable.Edit." + tostring(i)))
+                    {
+                        @m_workingLoadout = g_loadouts[i];
+                        m_jumpToTabLoadoutEdit = true;
+                    }
+
+                    UI::TableNextColumn();
+                    if (UI::Button(Icons::Trash + "##LoadoutsTabTable.Delete." + tostring(i)))
+                    {
+                        if (g_loadouts[i] is m_workingLoadout)
+                        {
+                            @m_workingLoadout = null;
+                        }
+                        g_loadouts.RemoveAt(i);
+                    }
+                    UI::TableNextRow();
+                }
+                UI::EndTable();
+            }
+            UI::PopStyleColor();
         }
 
         private void RenderLoadoutEditTab()
@@ -184,6 +222,74 @@ namespace Interface
                 UI::TextWrapped(Help::g_LoadoutEditHelpText);
                 UI::Separator();
             }
+
+            m_workingLoadout.Name = UI::InputText("Loadout Name##RenderLoadoutEditTab.LoadoutName", m_workingLoadout.Name);
+
+            if (UI::BeginCombo("Add Preset##RenderLoadoutEditTab.PresetCombo", "Add a Preset"))
+            {
+                int[] presetIds = m_workingLoadout.PresetIDs;
+                for (uint i = 0; i < g_presets.Length; i++)
+                {
+                    bool alreadySelected = false;
+                    for (uint selPresetIndex = 0; selPresetIndex < presetIds.Length; selPresetIndex++)
+                    {
+                        if (presetIds[selPresetIndex] == g_presets[i].PresetID)
+                        {
+                            alreadySelected = true;
+                            break;
+                        }
+                    }
+
+                    if (!alreadySelected)
+                    {
+                        if (UI::Selectable("\\$aaa" + g_presets[i].PluginName + "\\$fff - " + g_presets[i].Name + "##" + tostring(i), false))
+                        {
+                            m_workingLoadout.AddPresetID(g_presets[i].PresetID);
+                        }
+                    }
+                }
+                UI::EndCombo();
+            }
+
+            UI::PushStyleColor(UI::Col::TableRowBgAlt, vec4(0.0, 0.0, 0.0, 0.3));
+            if (UI::BeginTable("LoadoutTableEditCurrentPresetsTable", 4 /* col */, UI::TableFlags(UI::TableFlags::NoSavedSettings | UI::TableFlags::ScrollY | UI::TableFlags::RowBg)))
+            {
+                UI::TableSetupScrollFreeze(0, 1);
+                UI::TableSetupColumn("##Valid", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 15);
+                UI::TableSetupColumn("Preset##PresetName", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
+                UI::TableSetupColumn("Plugin##PresetPlugin", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 100);
+                UI::TableSetupColumn("##RemovePreset", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
+                UI::TableHeadersRow();
+
+                int[] presetIds = m_workingLoadout.PresetIDs;
+                for (uint i = 0; i < presetIds.Length; i++)
+                {
+                    PluginPreset@ preset = GetPresetFromID(presetIds[i]);
+                    if (preset is null)
+                    {
+                        continue;
+                    }
+
+                    UI::TableNextColumn();
+                    UI::Text(preset.Valid ? "\\$0b0" + Icons::Kenney::Check : "\\$b00" + Icons::Kenney::Times);
+
+                    UI::TableNextColumn();
+                    UI::Text(preset.Name);
+
+                    UI::TableNextColumn();
+                    UI::Text("\\$aaa" + preset.PluginName);
+
+                    UI::TableNextColumn();
+                    if (UI::Button(Icons::Times + "##LoadoutTableEditCurrentPresetsTable.Remove." + tostring(i)))
+                    {
+                        m_workingLoadout.RemovePresetID(presetIds[i]);
+                    }
+
+                }
+
+                UI::EndTable();
+            }
+            UI::PopStyleColor();
         }
 
         private void RenderPresetTab()
@@ -207,6 +313,7 @@ namespace Interface
             UI::PushStyleColor(UI::Col::TableRowBgAlt, vec4(0.0, 0.0, 0.0, 0.3));
             if (UI::BeginTable("PresetsTabTable", 5 /* col */, UI::TableFlags(UI::TableFlags::NoSavedSettings | UI::TableFlags::ScrollY | UI::TableFlags::RowBg)))
             {
+                UI::TableSetupScrollFreeze(0, 1);
                 UI::TableSetupColumn("##Valid", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 15);
                 UI::TableSetupColumn("Preset##Preset", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
                 UI::TableSetupColumn("Plugin##Plugin", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 100);

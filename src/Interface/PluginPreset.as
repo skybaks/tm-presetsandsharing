@@ -139,4 +139,18 @@ namespace Interface
         }
         return newId;
     }
+
+    PluginPreset@ GetPresetFromID(const int id)
+    {
+        PluginPreset@ preset = null;
+        for (uint i = 0; i < g_presets.Length; i++)
+        {
+            if (id == g_presets[i].PresetID)
+            {
+                @preset = g_presets[i];
+                break;
+            }
+        }
+        return preset;
+    }
 }

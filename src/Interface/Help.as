@@ -25,8 +25,7 @@ Once all the validation items display green checkmarks then your preset is ready
 Select \$9cfCreate New\$fff to get started.""";
 
         const string g_LoadoutEditHelpText =
-"""\$fffTo create your loadout...
-TODO: Finish this help section
+"""\$fffTo create your loadout begin by setting a name. Then add presets to the loadout from the dropdown below.
 """;
 
     }
