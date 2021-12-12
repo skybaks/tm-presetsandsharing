@@ -14,6 +14,9 @@ namespace Interface
         private PresetLoadout@ m_workingLoadout = null;
         private WindowTabs m_jumpToTab = WindowTabs::None;
         private string m_importBinaryString = "";
+        private bool m_globalDisabled = false;
+        private bool m_showDialog = false;
+        private DialogMessageData m_dialogData;
 
         ManagePresets()
         {
@@ -26,8 +29,15 @@ namespace Interface
         {
             if (m_windowVisible)
             {
+                m_globalDisabled = m_showDialog;
+                if (m_globalDisabled) { UI::BeginDisabled(true); }
                 UI::SetNextWindowSize(500, 600, UI::Cond::Once);
-                UI::Begin(m_windowName, m_windowVisible);
+                UI::WindowFlags mainWindowFlags = UI::WindowFlags::NoCollapse;
+                if (m_globalDisabled)
+                {
+                    mainWindowFlags = UI::WindowFlags(mainWindowFlags | UI::WindowFlags::NoBringToFrontOnFocus);
+                }
+                UI::Begin(m_windowName, m_windowVisible, mainWindowFlags);
 
                 if (!m_windowVisible)
                 {
@@ -99,7 +109,49 @@ namespace Interface
                 }
                 UI::EndTabBar();
 
+                vec2 size = UI::GetWindowSize();
+                vec2 pos = UI::GetWindowPos();
+
                 UI::End();
+                if (m_globalDisabled) { UI::EndDisabled(); }
+
+                if (m_showDialog)
+                {
+                    DialogResultType result = RenderShowDialog(m_dialogData.Title, m_dialogData.Body, size, pos);
+
+                    if (result != DialogResultType::Undetermined)
+                    {
+                        m_showDialog = false;
+
+                        if (result == DialogResultType::Yes)
+                        {
+                            if (m_dialogData.Target == DialogType::PresetDelete
+                                && m_dialogData.TargetIndex >= 0
+                                && uint(m_dialogData.TargetIndex) < g_presets.Length)
+                            {
+                                if (g_presets[m_dialogData.TargetIndex] is m_workingPreset)
+                                {
+                                    @m_workingPreset = null;
+                                    m_importBinaryString = "";
+                                }
+                                g_presets.RemoveAt(m_dialogData.TargetIndex);
+                                g_presets.SortAsc();
+                            }
+                            else if (m_dialogData.Target == DialogType::LoadoutDelete
+                                && m_dialogData.TargetIndex >= 0
+                                && uint(m_dialogData.TargetIndex) < g_loadouts.Length)
+                            {
+                                if (g_loadouts[m_dialogData.TargetIndex] is m_workingLoadout)
+                                {
+                                    @m_workingLoadout = null;
+                                }
+                                g_loadouts.RemoveAt(m_dialogData.TargetIndex);
+                            }
+                        }
+
+                        m_dialogData = DialogMessageData();
+                    }
+                }
             }
         }
 
@@ -219,16 +271,15 @@ namespace Interface
             }
 
             UI::PushStyleColor(UI::Col::TableRowBgAlt, vec4(0.0, 0.0, 0.0, 0.3));
-            if (UI::BeginTable("LoadoutsTabTable", 4 /* col */, UI::TableFlags(UI::TableFlags::NoSavedSettings | UI::TableFlags::ScrollY | UI::TableFlags::RowBg)))
+            if (UI::BeginTable("LoadoutsTabTable", 5 /* col */, UI::TableFlags(UI::TableFlags::NoSavedSettings | UI::TableFlags::ScrollY | UI::TableFlags::RowBg)))
             {
                 UI::TableSetupScrollFreeze(0, 1);
                 UI::TableSetupColumn("##Valid", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 15);
                 UI::TableSetupColumn("Loadout##Loadout", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
+                UI::TableSetupColumn("Hotkey##Hotkey", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 100);
                 UI::TableSetupColumn("##Edit", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
                 UI::TableSetupColumn("##Delete", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
-                UI::BeginDisabled(true);
                 UI::TableHeadersRow();
-                UI::EndDisabled();
 
                 for (uint i = 0; i < g_loadouts.Length; i++)
                 {
@@ -237,6 +288,9 @@ namespace Interface
 
                     UI::TableNextColumn();
                     UI::Text(g_loadouts[i].Name);
+
+                    UI::TableNextColumn();
+                    UI::TextDisabled(g_loadouts[i].GetHotkeyString());
 
                     UI::TableNextColumn();
                     if (UI::Button(Icons::PencilSquareO + "##LoadoutsTabTable.Edit." + tostring(i)))
@@ -248,11 +302,11 @@ namespace Interface
                     UI::TableNextColumn();
                     if (UI::Button(Icons::Trash + "##LoadoutsTabTable.Delete." + tostring(i)))
                     {
-                        if (g_loadouts[i] is m_workingLoadout)
-                        {
-                            @m_workingLoadout = null;
-                        }
-                        g_loadouts.RemoveAt(i);
+                        m_dialogData.Title = "Delete Loadout";
+                        m_dialogData.Body = "\\$fffThis will permanently delete the loadout \\$9cf" + g_loadouts[i].Name + "\\$fff\n\nAre you sure?\n ";
+                        m_dialogData.Target = DialogType::LoadoutDelete;
+                        m_dialogData.TargetIndex = i;
+                        m_showDialog = true;
                     }
                     UI::TableNextRow();
                 }
@@ -273,7 +327,7 @@ namespace Interface
 
             m_workingLoadout.Name = UI::InputText("Loadout Name##RenderLoadoutEditTab.LoadoutName", m_workingLoadout.Name);
 
-            UI::BeginDisabled(!m_workingLoadout.HotkeyActive);
+            if (!m_globalDisabled) { UI::BeginDisabled(!m_workingLoadout.HotkeyActive); }
             if (UI::BeginCombo("##LoadoutHotkeyCombobox", tostring(m_workingLoadout.Hotkey)))
             {
                 VirtualKey result = ComboboxVirtualKey();
@@ -283,7 +337,7 @@ namespace Interface
                 }
                 UI::EndCombo();
             }
-            UI::EndDisabled();
+            if (!m_globalDisabled) { UI::EndDisabled(); }
 
             UI::SameLine();
             m_workingLoadout.HotkeyActive = UI::Checkbox("Hotkey Enabled##EnableLoadoutHotkey", m_workingLoadout.HotkeyActive);
@@ -322,9 +376,7 @@ namespace Interface
                 UI::TableSetupColumn("Preset##PresetName", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
                 UI::TableSetupColumn("Plugin##PresetPlugin", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 100);
                 UI::TableSetupColumn("##RemovePreset", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
-                UI::BeginDisabled(true);
                 UI::TableHeadersRow();
-                UI::EndDisabled();
 
                 int[] presetIds = m_workingLoadout.PresetIDs;
                 for (uint i = 0; i < presetIds.Length; i++)
@@ -384,9 +436,7 @@ namespace Interface
                 UI::TableSetupColumn("Plugin##Plugin", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 100);
                 UI::TableSetupColumn("##Edit", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
                 UI::TableSetupColumn("##Delete", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
-                UI::BeginDisabled(true);
                 UI::TableHeadersRow();
-                UI::EndDisabled();
 
                 for (uint i = 0; i < g_presets.Length; i++)
                 {
@@ -410,13 +460,11 @@ namespace Interface
                     UI::TableNextColumn();
                     if (UI::Button(Icons::Trash + "##PresetsTabTable.Delete." + tostring(i)))
                     {
-                        if (g_presets[i] is m_workingPreset)
-                        {
-                            @m_workingPreset = null;
-                            m_importBinaryString = "";
-                        }
-                        g_presets.RemoveAt(i);
-                        g_presets.SortAsc();
+                        m_dialogData.Title = "Delete Preset";
+                        m_dialogData.Body = "\\$fffThis will permanently delete the preset \\$9cf" + g_presets[i].Name + "\\$fff\n\nAre you sure?\n ";
+                        m_dialogData.Target = DialogType::PresetDelete;
+                        m_dialogData.TargetIndex = i;
+                        m_showDialog = true;
                     }
 
                     UI::TableNextRow();
@@ -436,7 +484,7 @@ namespace Interface
                 UI::Separator();
             }
 
-            UI::BeginDisabled(m_workingPreset.PluginID != "");
+            if (!m_globalDisabled) { UI::BeginDisabled(m_workingPreset.PluginID != ""); }
 
             auto plugins = Meta::AllPlugins();
             if (UI::BeginCombo("Plugin##ManagePresets.RenderWindow", m_workingPreset.PluginName))
@@ -457,8 +505,8 @@ namespace Interface
                 UI::EndCombo();
             }
 
-            UI::EndDisabled();
-            UI::BeginDisabled(m_workingPreset.PluginID == "");
+            if (!m_globalDisabled) { UI::EndDisabled(); }
+            if (!m_globalDisabled) { UI::BeginDisabled(m_workingPreset.PluginID == ""); }
 
             m_workingPreset.Name = UI::InputText("Preset Name##ManagePresets.RenderWindow", m_workingPreset.Name);
 
@@ -502,7 +550,7 @@ namespace Interface
 
                 UI::EndTable();
             }
-            UI::EndDisabled();
+            if (!m_globalDisabled) { UI::EndDisabled(); }
 
             UI::Separator();
 
@@ -510,12 +558,12 @@ namespace Interface
 
             Tooltip::Show("Applies this preset to the plugin's settings.");
             UI::SameLine();
-            UI::BeginDisabled(!m_workingPreset.Valid);
+            if (!m_globalDisabled) { UI::BeginDisabled(!m_workingPreset.Valid); }
             if (UI::Button("Apply Preset"))
             {
                 m_workingPreset.ApplySettings();
             }
-            UI::EndDisabled();
+            if (!m_globalDisabled) { UI::EndDisabled(); }
 
         }
 
