@@ -157,7 +157,7 @@ namespace Interface
 
         void RenderMenu()
         {
-            if (Setting_General_PresetListEnable && UI::BeginMenu(m_presetsMenuName))
+            if (!Setting_General_PresetListHide && UI::BeginMenu(m_presetsMenuName))
             {
                 int presetsVisible = 0;
                 switch (Setting_General_PresetListType)
@@ -186,7 +186,7 @@ namespace Interface
                 UI::EndMenu();
             }
 
-            if (Setting_General_LoadoutListEnable && UI::BeginMenu(m_loadoutsMenuName))
+            if (!Setting_General_LoadoutListHide && UI::BeginMenu(m_loadoutsMenuName))
             {
                 int loadoutsVisible = 0;
                 for (uint i = 0; i < g_loadouts.Length; i++)

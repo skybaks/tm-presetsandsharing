@@ -3,11 +3,11 @@
 [Setting category="General" name="Hide extra help information"]
 bool Setting_General_HideVerboseHelp = false;
 
-[Setting category="General" name="Enable Loadout Script Menu" description="Show or hide loadouts on the plugin script menu"]
-bool Setting_General_LoadoutListEnable = true;
+[Setting category="General" name="Hide Loadout Script Menu" description="Hide loadouts on the plugin script menu"]
+bool Setting_General_LoadoutListHide = false;
 
-[Setting category="General" name="Enable Preset Script Menu" description="Show or hide presets on the plugin script menu"]
-bool Setting_General_PresetListEnable = true;
+[Setting category="General" name="Hide Preset Script Menu" description="Hide presets on the plugin script menu"]
+bool Setting_General_PresetListHide = false;
 
 enum PresetListType
 {
