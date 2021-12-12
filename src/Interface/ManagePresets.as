@@ -569,7 +569,7 @@ namespace Interface
 
         void Save()
         {
-            trace("Saving presets");
+            print("\\$9cf" + Icons::Sliders + "\\$fff Saving presets");
 
             auto value = Json::Object();
             value["Settings"] = "PresetsAndSharing";

@@ -58,6 +58,14 @@ bool OnKeyPress(bool down, VirtualKey key)
     return handled;
 }
 
+void OnDestroyed()
+{
+    if (g_interface !is null)
+    {
+        g_interface.Save();
+    }
+}
+
 void Main()
 {
     @g_interface = Interface::ManagePresets();
