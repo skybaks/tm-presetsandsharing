@@ -1,6 +1,7 @@
 
 Interface::PluginPreset@[] g_presets;
 Interface::PresetLoadout@[] g_loadouts;
+bool g_hotkeyCombokeyDown = false;
 
 #if !UNIT_TEST
 
@@ -20,6 +21,41 @@ void RenderInterface()
     {
         g_interface.RenderWindow();
     }
+}
+
+bool OnKeyPress(bool down, VirtualKey key)
+{
+    bool handled = false;
+
+    if (!g_hotkeyCombokeyDown
+        && down
+        && key == Setting_General_LoadoutHotkeyCombo)
+    {
+        g_hotkeyCombokeyDown = true;
+    }
+    else if (g_hotkeyCombokeyDown
+        && !down)
+    {
+        if (key == Setting_General_LoadoutHotkeyCombo)
+        {
+            g_hotkeyCombokeyDown = false;
+        }
+        else
+        {
+            for (uint i = 0; i < g_loadouts.Length; i++)
+            {
+                if (g_loadouts[i].HotkeyActive
+                    && g_loadouts[i].Hotkey == key)
+                {
+                    UI::ShowNotification("Presets and Sharing", "Activated loadout: " + g_loadouts[i].Name, 5000);
+                    g_loadouts[i].ActivatePresets();
+                    break;
+                }
+            }
+        }
+    }
+
+    return handled;
 }
 
 void Main()

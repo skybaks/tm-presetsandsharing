@@ -6,6 +6,8 @@ namespace Interface
         private int m_id;
         private string m_name;
         private int[] m_presetIds;
+        private bool m_hotkeyActive;
+        private VirtualKey m_hotkey = VirtualKey::F5;
 
         int LoadoutID { get { return m_id; } }
 
@@ -23,6 +25,30 @@ namespace Interface
                 {
                     m_name = value;
                 }
+            }
+        }
+
+        bool HotkeyActive
+        {
+            get
+            {
+                return m_hotkeyActive;
+            }
+            set
+            {
+                m_hotkeyActive = value;
+            }
+        }
+
+        VirtualKey Hotkey
+        {
+            get
+            {
+                return m_hotkey;
+            }
+            set
+            {
+                m_hotkey = value;
             }
         }
 
@@ -65,6 +91,16 @@ namespace Interface
             }
         }
 
+        string GetHotkeyString()
+        {
+            return HotkeyActive ? tostring(Setting_General_LoadoutHotkeyCombo) + "+" + tostring(m_hotkey) : "";
+        }
+
+        bool CheckHotkeyMatch(const VirtualKey key)
+        {
+            return HotkeyActive && key == m_hotkey;
+        }
+
         void Load(Json::Value object)
         {
             m_id = object["LoadoutID"];
@@ -73,6 +109,8 @@ namespace Interface
             {
                 m_presetIds.InsertLast(int(object["PresetIDs"][i]));
             }
+            HotkeyActive = object["HotkeyActive"];
+            Hotkey = VirtualKey(int(object["Hotkey"]));
         }
 
         Json::Value Save()
@@ -85,6 +123,8 @@ namespace Interface
             {
                 object["PresetIDs"].Add(m_presetIds[i]);
             }
+            object["HotkeyActive"] = HotkeyActive;
+            object["Hotkey"] = int(Hotkey);
             return object;
         }
     }

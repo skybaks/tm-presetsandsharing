@@ -140,7 +140,7 @@ namespace Interface
                 for (uint i = 0; i < g_loadouts.Length; i++)
                 {
                     loadoutsVisible++;
-                    if (UI::MenuItem(g_loadouts[i].Name + "##LoadoutMenuItem." + tostring(i)))
+                    if (UI::MenuItem(g_loadouts[i].Name + "##LoadoutMenuItem." + tostring(i), shortcut: g_loadouts[i].GetHotkeyString()))
                     {
                         g_loadouts[i].ActivatePresets();
                     }
@@ -270,6 +270,21 @@ namespace Interface
             }
 
             m_workingLoadout.Name = UI::InputText("Loadout Name##RenderLoadoutEditTab.LoadoutName", m_workingLoadout.Name);
+
+            UI::BeginDisabled(!m_workingLoadout.HotkeyActive);
+            if (UI::BeginCombo("##LoadoutHotkeyCombobox", tostring(m_workingLoadout.Hotkey)))
+            {
+                VirtualKey result = ComboboxVirtualKey();
+                if (int(result) != 0)
+                {
+                    m_workingLoadout.Hotkey = result;
+                }
+                UI::EndCombo();
+            }
+            UI::EndDisabled();
+
+            UI::SameLine();
+            m_workingLoadout.HotkeyActive = UI::Checkbox("Hotkey Enabled##EnableLoadoutHotkey", m_workingLoadout.HotkeyActive);
 
             if (UI::BeginCombo("Add Preset##RenderLoadoutEditTab.PresetCombo", "Add a Preset"))
             {
