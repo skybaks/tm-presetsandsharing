@@ -1,5 +1,11 @@
 #if !UNIT_TEST
 
+[Setting category="General" name="Enable Loadout Script Menu" description="Show or hide loadouts on the plugin script menu"]
+bool Setting_General_LoadoutListEnable = true;
+
+[Setting category="General" name="Enable Preset Script Menu" description="Show or hide presets on the plugin script menu"]
+bool Setting_General_PresetListEnable = true;
+
 enum PresetListType
 {
     Uncategorized,

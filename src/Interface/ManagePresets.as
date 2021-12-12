@@ -2,15 +2,17 @@
 
 namespace Interface
 {
+    enum WindowTabs { None, Preset, Loadout, PresetEdit, LoadoutEdit }
+
     class ManagePresets
     {
         private bool m_windowVisible = false;
-        private string m_menuName = "\\$9cf" + Icons::Sliders + "\\$fff Presets";
-        private string m_windowName = Icons::Sliders + " Manage Presets";
+        private string m_presetsMenuName = "\\$9cf" + Icons::Sliders + "\\$fff Presets";
+        private string m_loadoutsMenuName = "\\$9cf" + Icons::Sliders + "\\$fff Loadouts";
+        private string m_windowName = Icons::Sliders + " Presets and Sharing";
         private PluginPreset@ m_workingPreset = null;
         private PresetLoadout@ m_workingLoadout = null;
-        private bool m_jumpToTabPresetEdit = false;
-        private bool m_jumpToTabLoadoutEdit = false;
+        private WindowTabs m_jumpToTab = WindowTabs::None;
         private string m_importBinaryString = "";
 
         ManagePresets()
@@ -33,22 +35,36 @@ namespace Interface
                 }
 
                 UI::BeginTabBar("##OverallTabBar.ManagePresets.RenderWindow");
-                if (UI::BeginTabItem("Loadouts"))
+                if (UI::BeginTabItem("Loadouts", m_jumpToTab == WindowTabs::Loadout ? UI::TabItemFlags::SetSelected : UI::TabItemFlags::None))
                 {
+                    if (m_jumpToTab == WindowTabs::Loadout)
+                    {
+                        m_jumpToTab = WindowTabs::None;
+                    }
+
                     RenderLoadoutTab();
                     UI::EndTabItem();
                 }
-                if (UI::BeginTabItem("Presets"))
+                if (UI::BeginTabItem("Presets", m_jumpToTab == WindowTabs::Preset ? UI::TabItemFlags::SetSelected : UI::TabItemFlags::None))
                 {
+                    if (m_jumpToTab == WindowTabs::Preset)
+                    {
+                        m_jumpToTab = WindowTabs::None;
+                    }
+
                     RenderPresetTab();
                     UI::EndTabItem();
                 }
                 bool loadoutEditTabVisible = m_workingLoadout !is null;
                 if (m_workingLoadout !is null)
                 {
-                    if (UI::BeginTabItem("Edit Loadout", loadoutEditTabVisible, m_jumpToTabLoadoutEdit ? UI::TabItemFlags::SetSelected : UI::TabItemFlags::None))
+                    if (UI::BeginTabItem("Edit Loadout", loadoutEditTabVisible, m_jumpToTab == WindowTabs::LoadoutEdit ? UI::TabItemFlags::SetSelected : UI::TabItemFlags::None))
                     {
-                        m_jumpToTabLoadoutEdit = false;
+                        if (m_jumpToTab == WindowTabs::LoadoutEdit)
+                        {
+                            m_jumpToTab = WindowTabs::None;
+                        }
+
                         if (loadoutEditTabVisible)
                         {
                             RenderLoadoutEditTab();
@@ -63,9 +79,13 @@ namespace Interface
                 bool presetEditTabVisible = m_workingPreset !is null;
                 if (m_workingPreset !is null)
                 {
-                    if (UI::BeginTabItem("Edit Preset", presetEditTabVisible, m_jumpToTabPresetEdit ? UI::TabItemFlags::SetSelected : UI::TabItemFlags::None))
+                    if (UI::BeginTabItem("Edit Preset", presetEditTabVisible, m_jumpToTab == WindowTabs::PresetEdit ? UI::TabItemFlags::SetSelected : UI::TabItemFlags::None))
                     {
-                        m_jumpToTabPresetEdit = false;
+                        if (m_jumpToTab == WindowTabs::PresetEdit)
+                        {
+                            m_jumpToTab = WindowTabs::None;
+                        }
+
                         if (presetEditTabVisible)
                         {
                             RenderPresetEditTab();
@@ -85,7 +105,7 @@ namespace Interface
 
         void RenderMenu()
         {
-            if (UI::BeginMenu(m_menuName))
+            if (Setting_General_PresetListEnable && UI::BeginMenu(m_presetsMenuName))
             {
                 int presetsVisible = 0;
                 switch (Setting_General_PresetListType)
@@ -108,6 +128,33 @@ namespace Interface
 
                 if (UI::MenuItem(Icons::Cog + " Manage Presets"))
                 {
+                    m_jumpToTab = WindowTabs::Preset;
+                    m_windowVisible = true;
+                }
+                UI::EndMenu();
+            }
+
+            if (Setting_General_LoadoutListEnable && UI::BeginMenu(m_loadoutsMenuName))
+            {
+                int loadoutsVisible = 0;
+                for (uint i = 0; i < g_loadouts.Length; i++)
+                {
+                    loadoutsVisible++;
+                    if (UI::MenuItem(g_loadouts[i].Name + "##LoadoutMenuItem." + tostring(i)))
+                    {
+                        g_loadouts[i].ActivatePresets();
+                    }
+                }
+                if (loadoutsVisible <= 0)
+                {
+                    UI::MenuItem("No Loadouts", enabled: false);
+                }
+
+                UI::Separator();
+
+                if (UI::MenuItem(Icons::Cog + " Manage Loadouts"))
+                {
+                    m_jumpToTab = WindowTabs::Loadout;
                     m_windowVisible = true;
                 }
                 UI::EndMenu();
@@ -143,7 +190,6 @@ namespace Interface
                     {
                         currPluginId = g_presets[i].PluginName;
                         UI::Separator();
-                        UI::MenuItem(Icons::Sliders + " " + currPluginId + "##PluginHeader", enabled:false);
                     }
                     presetsShown++;
                     if (UI::MenuItem(g_presets[i].Name + "##PresetMenuItem." + tostring(i)))
@@ -169,7 +215,7 @@ namespace Interface
             {
                 @m_workingLoadout = PresetLoadout();
                 g_loadouts.InsertLast(m_workingLoadout);
-                m_jumpToTabLoadoutEdit = true;
+                m_jumpToTab = WindowTabs::LoadoutEdit;
             }
 
             UI::PushStyleColor(UI::Col::TableRowBgAlt, vec4(0.0, 0.0, 0.0, 0.3));
@@ -194,7 +240,7 @@ namespace Interface
                     if (UI::Button(Icons::PencilSquareO + "##LoadoutsTabTable.Edit." + tostring(i)))
                     {
                         @m_workingLoadout = g_loadouts[i];
-                        m_jumpToTabLoadoutEdit = true;
+                        m_jumpToTab = WindowTabs::LoadoutEdit;
                     }
 
                     UI::TableNextColumn();
@@ -307,7 +353,7 @@ namespace Interface
                 @m_workingPreset = PluginPreset();
                 g_presets.InsertLast(m_workingPreset);
                 m_importBinaryString = "";
-                m_jumpToTabPresetEdit = true;
+                m_jumpToTab = WindowTabs::PresetEdit;
             }
 
             UI::PushStyleColor(UI::Col::TableRowBgAlt, vec4(0.0, 0.0, 0.0, 0.3));
@@ -337,7 +383,7 @@ namespace Interface
                     {
                         @m_workingPreset = g_presets[i];
                         m_importBinaryString = "";
-                        m_jumpToTabPresetEdit = true;
+                        m_jumpToTab = WindowTabs::PresetEdit;
                     }
 
                     UI::TableNextColumn();
