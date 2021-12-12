@@ -226,7 +226,9 @@ namespace Interface
                 UI::TableSetupColumn("Loadout##Loadout", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
                 UI::TableSetupColumn("##Edit", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
                 UI::TableSetupColumn("##Delete", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
+                UI::BeginDisabled(true);
                 UI::TableHeadersRow();
+                UI::EndDisabled();
 
                 for (uint i = 0; i < g_loadouts.Length; i++)
                 {
@@ -320,7 +322,9 @@ namespace Interface
                 UI::TableSetupColumn("Preset##PresetName", UI::TableColumnFlags(UI::TableColumnFlags::WidthStretch));
                 UI::TableSetupColumn("Plugin##PresetPlugin", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 100);
                 UI::TableSetupColumn("##RemovePreset", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
+                UI::BeginDisabled(true);
                 UI::TableHeadersRow();
+                UI::EndDisabled();
 
                 int[] presetIds = m_workingLoadout.PresetIDs;
                 for (uint i = 0; i < presetIds.Length; i++)
@@ -380,7 +384,9 @@ namespace Interface
                 UI::TableSetupColumn("Plugin##Plugin", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 100);
                 UI::TableSetupColumn("##Edit", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
                 UI::TableSetupColumn("##Delete", UI::TableColumnFlags(UI::TableColumnFlags::WidthFixed), 30);
+                UI::BeginDisabled(true);
                 UI::TableHeadersRow();
+                UI::EndDisabled();
 
                 for (uint i = 0; i < g_presets.Length; i++)
                 {
