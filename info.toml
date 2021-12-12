@@ -3,8 +3,8 @@ name = "Presets and Sharing"
 author = "skybaxrider"
 category = "Utilities"
 
-siteid = -1
-version = "0.3.0"
+siteid = 149
+version = "1.0.0"
 
 [script]
 imports = [ "Icons.as" ]
