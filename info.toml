@@ -11,4 +11,4 @@ imports = [ "Icons.as" ]
 # UNIT_TEST             - runs unit tests
 # DEV_MODE              - keeps UI open through recompilation
 # VERBOSE_SERIALIZATION - output logging for debugging serialization issues
-defines = [ "DEV_MODE" ]
+defines = [ "" ]
