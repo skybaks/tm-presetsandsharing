@@ -1,4 +1,3 @@
-#if !UNIT_TEST
 
 [Setting category="General" name="Hide extra help information"]
 bool Setting_General_HideVerboseHelp = false;
@@ -20,5 +19,3 @@ PresetListType Setting_General_PresetListType = PresetListType::Categorized;
 
 [Setting category="General" name="Loadout Hotkey Combo" description="This is the first key in the combination used to activate a loadout"]
 VirtualKey Setting_General_LoadoutHotkeyCombo = VirtualKey::Control;
-
-#endif
