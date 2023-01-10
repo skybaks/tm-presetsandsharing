@@ -120,6 +120,15 @@ namespace Serialization
                         case Meta::PluginSettingType::Int32:
                             plg.WriteInt32(bin.ReadInt());
                             break;
+                        case Meta::PluginSettingType::Uint8:
+                            plg.WriteUint8(bin.ReadInt());
+                            break;
+                        case Meta::PluginSettingType::Uint16:
+                            plg.WriteUint16(bin.ReadInt());
+                            break;
+                        case Meta::PluginSettingType::Uint32:
+                            plg.WriteUint32(bin.ReadInt());
+                            break;
                         case Meta::PluginSettingType::String:
                             plg.WriteString(bin.ReadString());
                             break;
