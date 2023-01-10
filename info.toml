@@ -4,10 +4,9 @@ author = "skybaxrider"
 category = "Utilities"
 
 siteid = 149
-version = "1.0.0"
+version = "1.0.1"
 
 [script]
-imports = [ "Icons.as" ]
 # UNIT_TEST             - runs unit tests
 # DEV_MODE              - keeps UI open through recompilation
 # VERBOSE_SERIALIZATION - output logging for debugging serialization issues

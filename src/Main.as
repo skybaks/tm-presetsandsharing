@@ -23,10 +23,8 @@ void RenderInterface()
     }
 }
 
-bool OnKeyPress(bool down, VirtualKey key)
+void OnKeyPress(bool down, VirtualKey key)
 {
-    bool handled = false;
-
     if (!g_hotkeyCombokeyDown
         && down
         && key == Setting_General_LoadoutHotkeyCombo)
@@ -54,8 +52,6 @@ bool OnKeyPress(bool down, VirtualKey key)
             }
         }
     }
-
-    return handled;
 }
 
 void OnDestroyed()
