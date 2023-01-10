@@ -13,18 +13,15 @@ namespace Interface
 
         int[] PresetIDs { get { return m_presetIds; } }
 
-        string Name
+        string get_Name()
         {
-            get
+            return m_name;
+        }
+        void set_Name(const string&in value)
+        {
+            if (m_name != value)
             {
-                return m_name;
-            }
-            set
-            {
-                if (m_name != value)
-                {
-                    m_name = value;
-                }
+                m_name = value;
             }
         }
 
