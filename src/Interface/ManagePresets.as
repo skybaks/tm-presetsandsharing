@@ -583,14 +583,21 @@ namespace Interface
             {
                 value["Loadouts"].Add(g_loadouts[i].Save());
             }
-            Json::ToFile(IO::FromDataFolder("PresetsAndSharing.json"), value);
+            Json::ToFile(IO::FromStorageFolder("PresetsAndSharing.json"), value);
         }
 
         void Load()
         {
+            // Migrate settings files from older plugin version
             if (IO::FileExists(IO::FromDataFolder("PresetsAndSharing.json")))
             {
-                auto value = Json::FromFile(IO::FromDataFolder("PresetsAndSharing.json"));
+                trace("Migrating settings to ./PluginStorage");
+                IO::Move(IO::FromDataFolder("PresetsAndSharing.json"), IO::FromStorageFolder("PresetsAndSharing.json"));
+            }
+
+            if (IO::FileExists(IO::FromStorageFolder("PresetsAndSharing.json")))
+            {
+                auto value = Json::FromFile(IO::FromStorageFolder("PresetsAndSharing.json"));
                 if (value.HasKey("Settings")
                     && string(value["Settings"]) == "PresetsAndSharing"
                     && value.HasKey("Presets")
