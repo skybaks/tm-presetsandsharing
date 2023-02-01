@@ -62,6 +62,12 @@ void OnDestroyed()
 
 void Main()
 {
+    if (!Test::TestMain())
+    {
+        error("Startup test failure. Exiting...");
+        return;
+    }
+
     @g_interface = Interface::ManagePresets();
 
     if (g_interface !is null)

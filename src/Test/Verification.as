@@ -1,25 +1,14 @@
 
-#if UNIT_TEST
 namespace Test
 {
     namespace Verification
     {
-        uint g_AssertsFailed = 0;
+        int g_AssertsFailed = 0;
         string g_CurrTestName = "";
-        string g_RunSingleTestName = "";
-
-        void SetSingleTest(const string&in testName)
-        {
-            g_RunSingleTestName = testName;
-        }
+        int g_TestsFailed = 0;
 
         void TestBegin(const string&in testName)
         {
-            if (g_RunSingleTestName != "" && testName != g_RunSingleTestName)
-            {
-                throw("Skipped");
-            }
-
             g_AssertsFailed = 0;
             g_CurrTestName = testName;
         }
@@ -30,15 +19,21 @@ namespace Test
             {
                 error("Test Failed: " + g_CurrTestName);
             }
-            else
-            {
-                print("\\$0f0Test Passed: " + g_CurrTestName);
-            }
             g_AssertsFailed = 0;
             g_CurrTestName = "";
         }
 
-        bool Condition(bool actual, string errorMsg = "")
+        void ResetTestStatus()
+        {
+            g_TestsFailed = 0;
+        }
+
+        bool GetTestStatus()
+        {
+            return g_TestsFailed == 0;
+        }
+
+        bool Condition(bool actual, const string&in errorMsg = "")
         {
             if (!actual)
             {
@@ -49,7 +44,7 @@ namespace Test
             return actual;
         }
 
-        bool AreEqual(bool expected, bool actual, string errorMsg = "")
+        bool AreEqual(bool expected, bool actual, const string&in errorMsg = "")
         {
             bool test = expected == actual;
             if (!test)
@@ -61,7 +56,7 @@ namespace Test
             return test;
         }
 
-        bool AreEqual(uint expected, uint actual, string errorMsg = "")
+        bool AreEqual(uint expected, uint actual, const string&in errorMsg = "")
         {
             bool test = expected == actual;
             if (!test)
@@ -73,7 +68,7 @@ namespace Test
             return test;
         }
 
-        bool AreEqual(int expected, int actual, string errorMsg = "")
+        bool AreEqual(int expected, int actual, const string&in errorMsg = "")
         {
             bool test = expected == actual;
             if (!test)
@@ -85,7 +80,7 @@ namespace Test
             return test;
         }
 
-        bool AreEqual(float expected, float actual, float tolerance, string errorMsg = "")
+        bool AreEqual(float expected, float actual, float tolerance, const string&in errorMsg = "")
         {
             bool test = Math::Abs(expected - actual) <= tolerance;
             if (!test)
@@ -97,7 +92,7 @@ namespace Test
             return test;
         }
 
-        bool AreEqual(string expected, string actual, string errorMsg = "")
+        bool AreEqual(const string&in expected, const string&in actual, const string&in errorMsg = "")
         {
             bool test = expected == actual;
             if (!test)
@@ -109,7 +104,7 @@ namespace Test
             return test;
         }
 
-        bool AreEqual(vec2 expected, vec2 actual, float tolerance, string errorMsg = "")
+        bool AreEqual(vec2 expected, vec2 actual, float tolerance, const string&in errorMsg = "")
         {
             bool test = Math::Abs(expected.x - actual.x) <= tolerance
                 && Math::Abs(expected.y - actual.y) <= tolerance;
@@ -122,7 +117,7 @@ namespace Test
             return test;
         }
 
-        bool AreEqual(vec3 expected, vec3 actual, float tolerance, string errorMsg = "")
+        bool AreEqual(vec3 expected, vec3 actual, float tolerance, const string&in errorMsg = "")
         {
             bool test = Math::Abs(expected.x - actual.x) <= tolerance
                 && Math::Abs(expected.y - actual.y) <= tolerance
@@ -136,7 +131,7 @@ namespace Test
             return test;
         }
 
-        bool AreEqual(vec4 expected, vec4 actual, float tolerance, string errorMsg = "")
+        bool AreEqual(vec4 expected, vec4 actual, float tolerance, const string&in errorMsg = "")
         {
             bool test = Math::Abs(expected.x - actual.x) <= tolerance
                 && Math::Abs(expected.y - actual.y) <= tolerance
@@ -152,4 +147,3 @@ namespace Test
         }
     }
 }
-#endif

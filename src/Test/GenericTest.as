@@ -1,4 +1,3 @@
-#if UNIT_TEST
 
 namespace Test
 {
@@ -9,5 +8,3 @@ namespace Test
         Verification::TestEnd();
     }
 }
-
-#endif
