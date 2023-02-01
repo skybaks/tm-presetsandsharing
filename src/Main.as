@@ -3,8 +3,6 @@ Interface::PluginPreset@[] g_presets;
 Interface::PresetLoadout@[] g_loadouts;
 bool g_hotkeyCombokeyDown = false;
 
-#if !UNIT_TEST
-
 Interface::ManagePresets@ g_interface;
 
 void RenderMenu()
@@ -23,10 +21,8 @@ void RenderInterface()
     }
 }
 
-bool OnKeyPress(bool down, VirtualKey key)
+void OnKeyPress(bool down, VirtualKey key)
 {
-    bool handled = false;
-
     if (!g_hotkeyCombokeyDown
         && down
         && key == Setting_General_LoadoutHotkeyCombo)
@@ -54,8 +50,6 @@ bool OnKeyPress(bool down, VirtualKey key)
             }
         }
     }
-
-    return handled;
 }
 
 void OnDestroyed()
@@ -85,5 +79,3 @@ void Main()
         prevFrameTime = Time::Now;
     }
 }
-
-#endif

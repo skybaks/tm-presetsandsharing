@@ -48,7 +48,10 @@ namespace Serialization
                     else if (settingType == Meta::PluginSettingType::Enum
                         || settingType == Meta::PluginSettingType::Int8
                         || settingType == Meta::PluginSettingType::Int16
-                        || settingType == Meta::PluginSettingType::Int32)
+                        || settingType == Meta::PluginSettingType::Int32
+                        || settingType == Meta::PluginSettingType::Uint8
+                        || settingType == Meta::PluginSettingType::Uint16
+                        || settingType == Meta::PluginSettingType::Uint32)
                     {
                         Serialization::BinaryFormatV0::IntegerByteCount byteCount = Serialization::BinaryFormatV0::IntegerByteCount((settingByte2 >> 2) & 0x03);
                         bool isSigned = (settingByte2 & 0x02) != 0;
@@ -217,7 +220,10 @@ namespace Serialization
                 else if (pluginSetting.Type == Meta::PluginSettingType::Enum
                     || pluginSetting.Type == Meta::PluginSettingType::Int8
                     || pluginSetting.Type == Meta::PluginSettingType::Int16
-                    || pluginSetting.Type == Meta::PluginSettingType::Int32)
+                    || pluginSetting.Type == Meta::PluginSettingType::Int32
+                    || pluginSetting.Type == Meta::PluginSettingType::Uint8
+                    || pluginSetting.Type == Meta::PluginSettingType::Uint16
+                    || pluginSetting.Type == Meta::PluginSettingType::Uint32)
                 {
                     int64 value = 0;
                     switch (pluginSetting.Type)
@@ -232,8 +238,19 @@ namespace Serialization
                         value = int64(pluginSetting.ReadInt16());
                         break;
                     case Meta::PluginSettingType::Int32:
-                    default:
                         value = int64(pluginSetting.ReadInt32());
+                        break;
+                    case Meta::PluginSettingType::Uint8:
+                        value = int64(pluginSetting.ReadUint8());
+                        break;
+                    case Meta::PluginSettingType::Uint16:
+                        value = int64(pluginSetting.ReadUint16());
+                        break;
+                    case Meta::PluginSettingType::Uint32:
+                        value = int64(pluginSetting.ReadUint32());
+                        break;
+                    default:
+                        error("ERROR: Unexpected type: " + tostring(pluginSetting.Type));
                         break;
                     }
                     if (value == 0)

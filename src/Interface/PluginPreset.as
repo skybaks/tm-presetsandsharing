@@ -12,51 +12,42 @@ namespace Interface
 
         int PresetID { get { return m_id; } }
 
-        string Name
+        string get_Name()
         {
-            get
+            return m_name;
+        }
+        void set_Name(const string&in value)
+        {
+            if (m_name != value)
             {
-                return m_name;
-            }
-            set
-            {
-                if (m_name != value)
-                {
-                    m_name = value;
-                    m_validation.ValidPresetName = m_name != "";
-                }
+                m_name = value;
+                m_validation.ValidPresetName = m_name != "";
             }
         }
 
-        string Binary
+        string get_Binary()
         {
-            get
+            return m_binary;
+        }
+        void set_Binary(const string&in value)
+        {
+            if (m_binary != value)
             {
-                return m_binary;
-            }
-            set
-            {
-                if (m_binary != value)
-                {
-                    m_binary = value;
-                    m_serializer.ReadAndValidateBinary(value, m_validation);
-                }
+                m_binary = value;
+                m_serializer.ReadAndValidateBinary(value, m_validation);
             }
         }
 
-        string PluginID
+        string get_PluginID()
         {
-            get
+            return m_pluginId;
+        }
+        void set_PluginID(const string&in value)
+        {
+            if (m_pluginId != value)
             {
-                return m_pluginId;
-            }
-            set
-            {
-                if (m_pluginId != value)
-                {
-                    m_pluginId = value;
-                    m_serializer.Initialize(m_pluginId, m_validation);
-                }
+                m_pluginId = value;
+                m_serializer.Initialize(m_pluginId, m_validation);
             }
         }
 
