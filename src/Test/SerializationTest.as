@@ -93,6 +93,33 @@ vec4 Setting_VEC4_Test03 = vec4(0, 0, 0, 0);
 [Setting category="VEC4" hidden]
 vec4 Setting_VEC4_Test04 = vec4(0, 0, 0, 0);
 
+[Setting category="UINT8" hidden]
+uint8 Setting_UINT8_Test01 = 0;
+[Setting category="UINT8" hidden]
+uint8 Setting_UINT8_Test02 = 0;
+[Setting category="UINT8" hidden]
+uint8 Setting_UINT8_Test03 = 0;
+[Setting category="UINT8" hidden]
+uint8 Setting_UINT8_Test04 = 0;
+
+[Setting category="UINT16" hidden]
+uint16 Setting_UINT16_Test01 = 0;
+[Setting category="UINT16" hidden]
+uint16 Setting_UINT16_Test02 = 0;
+[Setting category="UINT16" hidden]
+uint16 Setting_UINT16_Test03 = 0;
+[Setting category="UINT16" hidden]
+uint16 Setting_UINT16_Test04 = 0;
+
+[Setting category="UINT32" hidden]
+uint32 Setting_UINT32_Test01 = 0;
+[Setting category="UINT32" hidden]
+uint32 Setting_UINT32_Test02 = 0;
+[Setting category="UINT32" hidden]
+uint32 Setting_UINT32_Test03 = 0;
+[Setting category="UINT32" hidden]
+uint32 Setting_UINT32_Test04 = 0;
+
 namespace Test
 {
     Serialization::SettingsSerializationValidation g_testValidation;
@@ -454,6 +481,114 @@ namespace Test
         Setting_VEC4_Test02 = vec4(0, 0, 0, 0);
         Setting_VEC4_Test03 = vec4(0, 0, 0, 0);
         Setting_VEC4_Test04 = vec4(0, 0, 0, 0);
+
+        Verification::TestEnd();
+    }
+
+    void Test_Uint8Settings()
+    {
+        Verification::TestBegin("Test_Uint8Settings");
+
+        Setting_UINT8_Test01 = 17;
+        Setting_UINT8_Test02 = 4;
+        Setting_UINT8_Test03 = 127;
+        Setting_UINT8_Test04 = 7;
+
+        auto serial = Serialization::SettingsInterface();
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation, {"UINT8"});
+        string binary;
+        Verification::Condition(serial.WriteCurrentToBinary(binary, g_testValidation), "Error writing settings to binary");
+
+        Setting_UINT8_Test01 = 0;
+        Setting_UINT8_Test02 = 0;
+        Setting_UINT8_Test03 = 0;
+        Setting_UINT8_Test04 = 0;
+
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation);
+        Verification::Condition(serial.ReadAndValidateBinary(binary, g_testValidation), "Error reading binary settings");
+        Verification::Condition(serial.ApplyBinaryToSettings(g_testValidation), "Error applying settings from binary");
+
+        Verification::AreEqual(17, Setting_UINT8_Test01, "Unexpected value in Setting_UINT8_Test01");
+        Verification::AreEqual(4, Setting_UINT8_Test02, "Unexpected value in Setting_UINT8_Test02");
+        Verification::AreEqual(127, Setting_UINT8_Test03, "Unexpected value in Setting_UINT8_Test03");
+        Verification::AreEqual(7, Setting_UINT8_Test04, "Unexpected value in Setting_UINT8_Test04");
+
+        Setting_UINT8_Test01 = 0;
+        Setting_UINT8_Test02 = 0;
+        Setting_UINT8_Test03 = 0;
+        Setting_UINT8_Test04 = 0;
+
+        Verification::TestEnd();
+    }
+
+    void Test_Uint16Settings()
+    {
+        Verification::TestBegin("Test_Uint16Settings");
+
+        Setting_UINT16_Test01 = 4861;
+        Setting_UINT16_Test02 = 0;
+        Setting_UINT16_Test03 = 65535;
+        Setting_UINT16_Test04 = 15;
+
+        auto serial = Serialization::SettingsInterface();
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation, {"UINT16"});
+        string binary;
+        Verification::Condition(serial.WriteCurrentToBinary(binary, g_testValidation), "Error writing settings to binary");
+
+        Setting_UINT16_Test01 = 0;
+        Setting_UINT16_Test02 = 0;
+        Setting_UINT16_Test03 = 0;
+        Setting_UINT16_Test04 = 0;
+
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation);
+        Verification::Condition(serial.ReadAndValidateBinary(binary, g_testValidation), "Error reading binary settings");
+        Verification::Condition(serial.ApplyBinaryToSettings(g_testValidation), "Error applying settings from binary");
+
+        Verification::AreEqual(4861, Setting_UINT16_Test01, "Unexpected value in Setting_UINT16_Test01");
+        Verification::AreEqual(0, Setting_UINT16_Test02, "Unexpected value in Setting_UINT16_Test02");
+        Verification::AreEqual(65535, Setting_UINT16_Test03, "Unexpected value in Setting_UINT16_Test03");
+        Verification::AreEqual(15, Setting_UINT16_Test04, "Unexpected value in Setting_UINT16_Test04");
+
+        Setting_UINT16_Test01 = 0;
+        Setting_UINT16_Test02 = 0;
+        Setting_UINT16_Test03 = 0;
+        Setting_UINT16_Test04 = 0;
+
+        Verification::TestEnd();
+    }
+
+    void Test_Uint32Settings()
+    {
+        Verification::TestBegin("Test_Uint32Settings");
+
+        Setting_UINT32_Test01 = 4861;
+        Setting_UINT32_Test02 = 0;
+        Setting_UINT32_Test03 = 65536;
+        Setting_UINT32_Test04 = 15;
+
+        auto serial = Serialization::SettingsInterface();
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation, {"UINT32"});
+        string binary;
+        Verification::Condition(serial.WriteCurrentToBinary(binary, g_testValidation), "Error writing settings to binary");
+
+        Setting_UINT32_Test01 = 0;
+        Setting_UINT32_Test02 = 0;
+        Setting_UINT32_Test03 = 0;
+        Setting_UINT32_Test04 = 0;
+
+        serial.Initialize(Meta::ExecutingPlugin().ID, g_testValidation);
+        Verification::Condition(serial.ReadAndValidateBinary(binary, g_testValidation), "Error reading binary settings");
+        Verification::Condition(serial.ApplyBinaryToSettings(g_testValidation), "Error applying settings from binary");
+
+        Verification::AreEqual(4861, Setting_UINT32_Test01, "Unexpected value in Setting_UINT32_Test01");
+        Verification::AreEqual(0, Setting_UINT32_Test02, "Unexpected value in Setting_UINT32_Test02");
+        Verification::AreEqual(65536, Setting_UINT32_Test03, "Unexpected value in Setting_UINT32_Test03");
+        Verification::AreEqual(15, Setting_UINT32_Test04, "Unexpected value in Setting_UINT32_Test04");
+
+        Setting_UINT32_Test01 = 0;
+        Setting_UINT32_Test02 = 0;
+        Setting_UINT32_Test03 = 0;
+        Setting_UINT32_Test04 = 0;
 
         Verification::TestEnd();
     }

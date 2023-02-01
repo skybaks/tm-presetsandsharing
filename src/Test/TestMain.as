@@ -17,6 +17,9 @@ namespace Test
         try { Test::Test_Vec2Settings(); } catch { error("Test Failed: " + Test::Verification::g_CurrTestName + "\n" + getExceptionInfo()); }
         try { Test::Test_Vec3Settings(); } catch { error("Test Failed: " + Test::Verification::g_CurrTestName + "\n" + getExceptionInfo()); }
         try { Test::Test_Vec4Settings(); } catch { error("Test Failed: " + Test::Verification::g_CurrTestName + "\n" + getExceptionInfo()); }
+        try { Test::Test_Uint8Settings(); } catch { error("Test Failed: " + Test::Verification::g_CurrTestName + "\n" + getExceptionInfo()); }
+        try { Test::Test_Uint16Settings(); } catch { error("Test Failed: " + Test::Verification::g_CurrTestName + "\n" + getExceptionInfo()); }
+        try { Test::Test_Uint32Settings(); } catch { error("Test Failed: " + Test::Verification::g_CurrTestName + "\n" + getExceptionInfo()); }
 
         return Test::Verification::GetTestStatus();
     }
